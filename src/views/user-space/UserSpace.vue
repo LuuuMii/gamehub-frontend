@@ -255,7 +255,7 @@
             
           </div>
         </div>
-        <div class="right-label">右边</div>
+        <div class="right-label">右边1</div>
       </div>
     </div>
   </div>
