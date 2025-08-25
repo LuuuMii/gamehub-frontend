@@ -213,13 +213,18 @@
               <ul class="column-ul">
                 <li class="column-li" v-for="index in columnList" :key="index">
                   <div class="img-title">
-                    <img class="column-img" src="../../assets/banner.jpg">
+                    <img class="column-img" src="../../assets/banner.jpg" />
                     <span class="column-title">算法：基础</span>
                   </div>
                   <div class="column-num">1篇</div>
                 </li>
               </ul>
-              <div class="more-column" v-show="openColumnList && columnList>20">更多</div>
+              <div
+                class="more-column"
+                v-show="openColumnList && columnList > 20"
+              >
+                更多
+              </div>
             </div>
             <!-- 展开按钮 -->
             <div class="btn-container">
@@ -250,12 +255,128 @@
               <div class="interactive-num">6</div>
             </div>
           </div>
-          <!-- 兴趣领域 -->
+          <!-- 兴趣领域(一个大div) -->
           <div class="user-interest">
-            
+            <div class="interest-top">
+              <div class="interest-title">兴趣领域</div>
+              <div class="interest-setup">
+                设置<i class="el-icon-arrow-right"></i>
+              </div>
+            </div>
+            <div class="interest-bottom">
+              <div class="one-interest" v-for="index in 3" :key="index">
+                <div class="interest-tag">
+                  <span class="interest-tag-name">Python</span>
+                  <div class="interest-together">
+                    <img
+                      class="interest-together-icon"
+                      src="../../assets/icon/heart_plus.svg"
+                    />
+                    <span class="interest-together-span">共同关注</span>
+                  </div>
+                </div>
+                <div class="interest-tag-sub">
+                  <img
+                    class="interest-tag-sub-icon"
+                    src="../../assets/icon/tag-sub.png"
+                  />
+                  <div
+                    class="interest-tag-sub-name"
+                    v-for="index in 10"
+                    :key="index"
+                  >
+                    python
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- 创作中心(一个大div) -->
+          <div>
+            <div class="creative-center">
+              <div class="creative-center-top">
+                <div class="creative-center-title">创作中心</div>
+                <div class="creative-center-more">
+                  更多<i class="el-icon-arrow-right"></i>
+                </div>
+              </div>
+              <div class="creative-center-bottom">
+                <div
+                  class="one-creative-activity"
+                  v-for="index in 3"
+                  :key="index"
+                >
+                  <div
+                    class="activity-title"
+                    title="【鸿蒙心迹，轻享时刻】码字换奖杯，鸿蒙开发者故事征集"
+                  >
+                    <img
+                      class="activity-icon"
+                      src="../../assets/icon/fire.png"
+                    />
+                    <span class="activity-title-span"
+                      >【鸿蒙心迹，轻享时刻】码字换奖杯，鸿蒙开发者故事征集</span
+                    >
+                  </div>
+                  <span class="activity-content"
+                    >鸿蒙开发生态蓬勃发展，开发者们用代码书写故事，在实践中收获独特感悟与成长。为营造轻松、温暖、有共鸣的社区氛围，鼓励开发者们卸下“技术包袱”，轻装上阵分享那些触动心灵的开发瞬间，HarmonyOS开发者社区特发起本次征文活动。</span
+                  >
+                  <div class="go-activity">
+                    <div class="go-activity-btb">去参加</div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="right-label">右边1</div>
+        <div class="right-label">
+          <!-- 头部导航条 -->
+          <div class="top-bar">
+            <ul class="top-bar-ul" v-show="isShowTopBarUl">
+              <li
+                :class="[
+                  'top-bar-li',
+                  { 'li-activity': activeIndex === index },
+                  { 'top-bar-li-clicked': activeIndex === index },
+                ]"
+                v-for="(item, index) in topBarUlList"
+                :key="index"
+                @click="goChildrenRoute(index, userId, item)"
+                v-show="item.visible"
+              >
+                {{ item.name }}
+              </li>
+              <li
+                class="top-bar-li"
+                v-show="isShowMoreLiBtn"
+                @click="showMoreLiBtn"
+              >
+                更多<i class="el-icon-arrow-right"></i>
+              </li>
+            </ul>
+            <div
+              class="search-icon"
+              v-show="isShowTopBarUl"
+              @click="showSearchInfo"
+            >
+              <img src="../../assets/icon/search_555666.svg" />
+            </div>
+            <div class="search-info" v-show="isShowSearchInfo">
+              <div class="search-content">
+                <img src="../../assets/icon/search_222226.svg" />
+                <input type="text" placeholder="搜TA的内容" />
+              </div>
+              <div class="search-btns">
+                <div class="search-btn">搜索</div>
+                <div class="vertical-line-for-search"></div>
+                <div class="cancel-btn" @click="closeSearchInfo">取消</div>
+              </div>
+            </div>
+          </div>
+          <div class="sub-container">
+            <router-view></router-view>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -271,8 +392,34 @@ export default {
       isOpenDetails: false,
       isOpenAchievement: false,
       isOpenColumnList: false,
-      columnList: 6
+      columnList: 6,
+      activeIndex: 0,
+      topBarUlList: [
+        { name: "最近", visible: true, url: "lately" },
+        { name: "文章", visible: true, url: "article" },
+        { name: "专栏", visible: true, url: "column" },
+        { name: "资源", visible: true, url: "download" },
+        { name: "收藏", visible: true, url: "collect" },
+        { name: "关注/订阅/互动", visible: true, url: "sub" },
+        { name: "社区", visible: false, url: "community" },
+        { name: "帖子", visible: false, url: "bbs" },
+        { name: "问答", visible: false, url: "ask" },
+        { name: "课程", visible: false, url: "edu" },
+        { name: "视频", visible: false, url: "video" },
+      ],
+      isShowMoreLiBtn: true,
+      isShowTopBarUl: true,
+      isShowSearchInfo: false,
+      userId: 333,
     };
+  },
+  created() {
+    const targetPath = `/userspace/${this.userId}/lately`;
+    if (this.$router.path !== targetPath) {
+      this.$router.push({
+        path: `/userspace/${this.userId}/lately`,
+      });
+    }
   },
   methods: {
     requestAuthor() {
@@ -284,19 +431,42 @@ export default {
     openDetails() {
       this.isOpenDetails = !this.isOpenDetails;
     },
-    openAchievement(){
+    openAchievement() {
       this.isOpenAchievement = !this.isOpenAchievement;
     },
-    openColumnList(){
+    openColumnList() {
       //测试
-      if(this.columnList===6){
-        this.columnList=8;
+      if (this.columnList === 6) {
+        this.columnList = 8;
         this.isOpenColumnList = true;
-      }else{
-        this.columnList=6;
+      } else {
+        this.columnList = 6;
         this.isOpenColumnList = false;
       }
-    }
+    },
+    showMoreLiBtn() {
+      this.isShowMoreLiBtn = false;
+      for (let i = 0; i < this.topBarUlList.length; i++) {
+        this.topBarUlList[i].visible = true;
+      }
+    },
+    showSearchInfo() {
+      this.isShowTopBarUl = false;
+      this.isShowSearchInfo = true;
+    },
+    closeSearchInfo() {
+      this.isShowTopBarUl = true;
+      this.isShowSearchInfo = false;
+    },
+    goChildrenRoute(index, userId, item) {
+      const targetPath = `/userspace/${userId}/${item.url}`;
+      this.activeIndex = index;
+      if (this.$route.path !== targetPath) {
+        this.$router.push({
+          path: `/userspace/${userId}/${item.url}`,
+        });
+      }
+    },
   },
 };
 </script>
@@ -606,6 +776,7 @@ export default {
   width: 100%;
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
   margin-top: 10px;
 }
 .left-label {
@@ -694,7 +865,6 @@ export default {
   color: #999aaa;
 }
 
-
 .achievement-medal {
   width: 100%;
   padding: 0 16px 20px;
@@ -740,7 +910,7 @@ export default {
   align-items: center;
   padding-bottom: 12px;
 }
-.open-btn{
+.open-btn {
   margin-top: 12px;
   cursor: pointer;
   width: 50px;
@@ -751,37 +921,35 @@ export default {
   justify-content: center;
   align-items: center;
 }
-.column{
+.column {
   margin-top: 12px;
   width: 100%;
   background-color: #fff;
 }
-.column-top{
+.column-top {
   width: 100%;
   display: flex;
   align-items: center;
   padding: 14px 0 0 16px;
+  border-bottom: 1px solid #e8e8ed;
 }
-.column-bar{
+.column-bar {
   padding: 0 0 16px 0;
   width: 100%;
   font-size: 16px;
   color: #222226;
   font-weight: 500;
-  border-bottom: 1px solid #e8e8ed;
 }
-.column-body{
+.column-body {
   width: 100%;
 }
-.column-ul{
-
+.column-ul {
   width: 100%;
   padding: 14px 20px 0px 30px;
 
   position: relative;
-
 }
-.column-ul::before{
+.column-ul::before {
   /* 竖线 */
   content: "";
   display: block;
@@ -791,9 +959,8 @@ export default {
   left: 13px;
   bottom: 12px;
   border-left: 1px dashed #8c8ca5;
-
 }
-.column-li{
+.column-li {
   width: 100%;
   display: flex;
   justify-content: space-between;
@@ -802,66 +969,66 @@ export default {
 
   position: relative;
 }
-.column-li::before{
+.column-li::before {
   /* 横线 */
-  content:"";
-  display:block;
+  content: "";
+  display: block;
   position: absolute;
   left: -16px;
   width: 16px;
   border-bottom: 1px dashed #8c8ca5;
 }
 
-.img-title{
+.img-title {
   display: flex;
   align-items: center;
   cursor: pointer;
 }
-.img-title:hover .column-title{
+.img-title:hover .column-title {
   color: #fc5531;
 }
-.column-img{
+.column-img {
   width: 24px;
   height: 24px;
   object-fit: cover;
   display: block;
   margin: 0 8px 0 4px;
 }
-.column-title{
+.column-title {
   font-size: 14px;
   color: #555666;
 
-  display: inline-block;   
-  max-width: 200px;        
-  white-space: nowrap;     
-  overflow: hidden;        
-  text-overflow: ellipsis; 
+  display: inline-block;
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.column-num{
+.column-num {
   font-size: 14px;
   color: #999aaa;
 }
 
-.more-column{
+.more-column {
   font-size: 14px;
   cursor: pointer;
   color: #40a9ff;
   transition: color 0.3s ease;
   margin-left: 30px;
 }
-.more-column:hover{
+.more-column:hover {
   color: #096dd9;
 }
 
-.user-interactive{
+.user-interactive {
   width: 100%;
   padding: 0 16px 0;
   background-color: #fff;
   margin-top: 10px;
   margin-bottom: 10px;
 }
-.one-interactive{
+.one-interactive {
   cursor: pointer;
   width: 100%;
   display: flex;
@@ -870,21 +1037,297 @@ export default {
   padding: 14px 3px 12px;
   border-bottom: 1px solid #e8e8ed;
 }
-.one-interactive:hover .interactive-title{
+.one-interactive:hover .interactive-title {
   color: #fc5531;
 }
-.interactive-title{
+.interactive-title {
   font-size: 14px;
   color: #666666;
 }
-.interactive-num{
+.interactive-num {
   font-size: 14px;
   color: #666666;
 }
 
+.user-interest {
+  width: 100%;
+  background-color: #fff;
+  margin-bottom: 10px;
+}
+.interest-top {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 16px;
+  border-bottom: 1px solid #e8e8ed;
+}
+.interest-title {
+  font-size: 16px;
+  color: #222226;
+}
+.interest-setup {
+  font-size: 16px;
+  color: #222226;
+  cursor: pointer;
+}
+.interest-bottom {
+  width: 100%;
+  padding: 4px 16px 20px;
+}
+.one-interest {
+  width: 100%;
+  margin-top: 12px;
+}
+.interest-tag {
+  display: flex;
+  align-items: center;
+}
+.interest-tag-name {
+  font-size: 16px;
+  color: #222226;
+}
+
+.interest-together {
+  cursor: pointer;
+  display: flex;
+  background-color: #e6f1fc;
+  padding: 1px 2px;
+  margin-left: 8px;
+}
+.interest-together-icon {
+  width: 14px;
+  height: 14px;
+  object-fit: cover;
+  display: flex;
+}
+.interest-together-span {
+  font-size: 12px;
+  line-height: 12px;
+  color: #40b2fd;
+}
+.interest-tag-sub {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.interest-tag-sub-icon {
+  margin-top: 2px;
+  width: 14px;
+  height: 14px;
+  object-fit: cover;
+  display: block;
+}
+.interest-tag-sub-name {
+  font-size: 12px;
+  color: #90919b;
+  height: 16px;
+  line-height: 16px;
+  text-align: center;
+  margin-left: 4px;
+}
+.interest-tag-sub-name:hover {
+  color: #fc5531;
+  cursor: pointer;
+}
+
+.creative-center {
+  width: 100%;
+  background-color: #fff;
+  margin-bottom: 10px;
+}
+.creative-center-top {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 16px;
+  border-bottom: 1px solid #e8e8ed;
+}
+.creative-center-title {
+  font-size: 16px;
+  color: #222226;
+}
+.creative-center-more {
+  font-size: 16px;
+  color: #222226;
+  cursor: pointer;
+}
+.creative-center-bottom {
+  width: 100%;
+  padding: 0 0 20px 0;
+}
+.one-creative-activity {
+  padding: 16px 24px 0 16px;
+  width: 100%;
+}
+.activity-title {
+  display: flex;
+  cursor: pointer;
+  align-items: center;
+}
+.activity-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: cover;
+  display: block;
+}
+.activity-title-span {
+  font-size: 16px;
+  color: #222226;
+  padding-right: 10px;
+
+  white-space: nowrap; /* 不换行 */
+  overflow: hidden; /* 超出的部分隐藏 */
+  text-overflow: ellipsis; /* 超出显示省略号(...) */
+}
+.activity-content {
+  margin-top: 5px;
+  font-size: 14px;
+  color: #555666;
+
+  display: -webkit-box; /* 创建弹性盒子模型 */
+  -webkit-box-orient: vertical; /* 垂直排列子元素 */
+  -webkit-line-clamp: 2; /* 限制显示2行 */
+  overflow: hidden; /* 超出的内容隐藏 */
+  text-overflow: ellipsis; /* 多行省略号 */
+  line-height: 20px; /* 根据实际行高调整 */
+}
+.go-activity {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 10px 8px 0 0;
+}
+.go-activity-btb {
+  width: 64px;
+  height: 26px;
+  border-radius: 13px;
+  border: 1px solid #ccccd8;
+  font-size: 14px;
+  line-height: 26px;
+  text-align: center;
+  color: #3f3f3f;
+}
+.go-activity-btb:hover {
+  border: 1px solid #555666;
+  cursor: pointer;
+}
+
 .right-label {
   width: 962px;
-  height: 300px;
-  background: #fff;
+  background-color: #fff;
+}
+.top-bar {
+  width: 100%;
+  padding: 16px 16px 0 16px;
+  border-bottom: 1px solid #e8e8ed;
+  position: relative;
+}
+.top-bar-ul {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}
+.top-bar-li {
+  position: relative;
+  font-size: 16px;
+  color: #555666;
+  font-family: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Helvetica,
+    Arial, sans-serif;
+  padding-bottom: 16px;
+  cursor: pointer;
+}
+.top-bar-li-clicked {
+  color: #222226;
+  font-weight: 600;
+}
+
+.top-bar-li.li-activity::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 2px;
+  background-color: #222226;
+  border-radius: 2px;
+}
+.search-icon {
+  cursor: pointer;
+  position: absolute;
+  right: 16px;
+  bottom: 50%;
+  transform: translateY(50%);
+}
+.search-icon img {
+  width: 24px;
+  height: 24px;
+  object-fit: cover;
+  display: block;
+}
+.search-icon:hover img {
+  content: url("../../assets/icon/search_222226.svg");
+}
+.search-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 36.8px;
+  padding-bottom: 12px;
+}
+.search-content {
+  display: flex;
+  align-items: center;
+}
+.search-content input {
+  border: none;
+  outline: none;
+  height: 32px;
+  width: 600px;
+  font-size: 14px;
+  margin: 0 0 0 4px;
+  padding: 0 20px 0 10px;
+}
+.search-content input::placeholder {
+  color: #999aaa; /* 修改颜色 */
+  font-size: 16px; /* 修改字体大小 */
+  opacity: 1;
+  font-family: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Helvetica,
+    Arial, sans-serif;
+}
+.search-btns {
+  display: flex;
+  align-items: center;
+}
+.search-btn {
+  cursor: pointer;
+  font-size: 14px;
+  color: #222226;
+  font-family: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Helvetica,
+    Arial, sans-serif;
+}
+.search-btn:hover {
+  color: #fc5531;
+}
+.vertical-line-for-search {
+  height: 16px;
+  border-left: 1px solid #e8e8ed;
+  margin: 0 10px;
+}
+.cancel-btn {
+  cursor: pointer;
+  font-size: 14px;
+  color: #555666;
+  font-family: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Helvetica,
+    Arial, sans-serif;
+}
+.sub-container {
+  width: 100%;
+  background-color: #fff;
 }
 </style>

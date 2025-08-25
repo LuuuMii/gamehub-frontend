@@ -4,6 +4,9 @@ import HomeView from '../views/HomeView.vue'
 import ChildRenView from '../views/HeaderView.vue'
 import PostView from '../views/PostView.vue'
 import OtherSpace from '../views/user-space/UserSpace.vue'
+import LatelyView from '../views/user-space/LatelyView.vue'
+import ArticleView from '../views/user-space/ArticleView.vue'
+import ColumnView from '../views/user-space/ColumnView.vue'
 
 Vue.use(VueRouter)
 
@@ -17,13 +20,30 @@ const routes = [
     path: '/post/:id',
     name: 'post',
     component: PostView,
-    porps: true,
+    props: true,
   },
   {
     path: '/userspace/:id',
     name: 'userSpace',
     component: OtherSpace,
-    porps: true,
+    props: true,
+    children: [
+      {
+        path: 'lately',
+        name: 'latelyView',
+        component: LatelyView
+      },
+      {
+        path: 'article',
+        name: 'articleView',
+        component: ArticleView
+      },
+      {
+        path: 'column',
+        name: 'columnView',
+        component: ColumnView
+      }
+    ]
   },
   {
     path: '/about',
