@@ -12,6 +12,8 @@ import CollectView from '../views/user-space/CollectView.vue'
 import SubView from '../views/user-space/SubView.vue'
 import WatchView from '../views/user-space/sub/WatchView.vue'
 import FansView from '../views/user-space/sub/FansView.vue'
+import FolderView from '../views/user-space/sub/FolderView.vue'
+import CommunityView from '../views/user-space/sub/CommunityView.vue'
 
 Vue.use(VueRouter)
 
@@ -63,7 +65,6 @@ const routes = [
         name: 'subView',
         component: SubView,
         props: true,
-        
         children: [
           {
             path: 'watch',
@@ -74,6 +75,16 @@ const routes = [
             path: 'fans',
             name: 'fansView',
             component: FansView
+          },
+          {
+            path: 'folder',
+            name: 'folderView',
+            component: FolderView
+          },
+          {
+            path: 'community',
+            name: 'communityView',
+            component: CommunityView
           },
         ]
       },
