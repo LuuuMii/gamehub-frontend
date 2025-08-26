@@ -7,6 +7,11 @@ import OtherSpace from '../views/user-space/UserSpace.vue'
 import LatelyView from '../views/user-space/LatelyView.vue'
 import ArticleView from '../views/user-space/ArticleView.vue'
 import ColumnView from '../views/user-space/ColumnView.vue'
+import DownloadView from '../views/user-space/DownloadView.vue'
+import CollectView from '../views/user-space/CollectView.vue'
+import SubView from '../views/user-space/SubView.vue'
+import WatchView from '../views/user-space/sub/WatchView.vue'
+import FansView from '../views/user-space/sub/FansView.vue'
 
 Vue.use(VueRouter)
 
@@ -42,7 +47,36 @@ const routes = [
         path: 'column',
         name: 'columnView',
         component: ColumnView
-      }
+      },
+      {
+        path: 'download',
+        name: 'downloadView',
+        component: DownloadView
+      },
+      {
+        path: 'collect',
+        name: 'collectView',
+        component: CollectView
+      },
+      {
+        path: 'sub',
+        name: 'subView',
+        component: SubView,
+        props: true,
+        
+        children: [
+          {
+            path: 'watch',
+            name: 'watchView',
+            component: WatchView
+          },
+          {
+            path: 'fans',
+            name: 'fansView',
+            component: FansView
+          },
+        ]
+      },
     ]
   },
   {
@@ -63,7 +97,7 @@ const routes = [
 ]
 
 const router = new VueRouter({
-  mode: 'history', 
+  mode: 'history',
   routes
 })
 

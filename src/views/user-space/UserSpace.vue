@@ -410,12 +410,13 @@ export default {
       isShowMoreLiBtn: true,
       isShowTopBarUl: true,
       isShowSearchInfo: false,
-      userId: 333,
+      userId: null,
     };
   },
   created() {
+    this.userId = this.$route.params.id;
     const targetPath = `/userspace/${this.userId}/lately`;
-    if (this.$router.path !== targetPath) {
+    if (this.$route.path !== targetPath) {
       this.$router.push({
         path: `/userspace/${this.userId}/lately`,
       });
@@ -468,6 +469,7 @@ export default {
       }
     },
   },
+  
 };
 </script>
 
