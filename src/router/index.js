@@ -14,6 +14,10 @@ import WatchView from '../views/user-space/sub/WatchView.vue'
 import FansView from '../views/user-space/sub/FansView.vue'
 import FolderView from '../views/user-space/sub/FolderView.vue'
 import CommunityView from '../views/user-space/sub/CommunityView.vue'
+import PostCommentView from '../views/user-space/sub/PostCommentView.vue'
+import ReceivedCommentView from '../views/user-space/sub/ReceivedCommentView.vue'
+import WatchedColumnView from '../views/user-space/sub/WatchedColumnView.vue'
+import ActivityView from '../views/user-space/sub/ActivityView.vue'
 
 Vue.use(VueRouter)
 
@@ -86,7 +90,38 @@ const routes = [
             name: 'communityView',
             component: CommunityView
           },
+          {
+            path: 'postComment',
+            name: 'postCommentView',
+            component: PostCommentView
+          },
+          {
+            path: 'receivedComment',
+            name: 'receivedCommentView',
+            component: ReceivedCommentView
+          },
+          {
+            path: 'watchedColumn',
+            name: 'watchedColumnView',
+            component: WatchedColumnView
+          },
+          {
+            path: 'activity',
+            name: 'activityView',
+            component: ActivityView
+          },
+          
         ]
+      },
+      {
+        path: 'blogCommunity',
+        name: 'blogCommunityView',
+        component: () => import('@/views/user-space/BlogCommunityView.vue')
+      },
+      {
+        path: 'bbs',
+        name: 'BBSView',
+        component: () => import('@/views/user-space/BBSView.vue')
       },
     ]
   },

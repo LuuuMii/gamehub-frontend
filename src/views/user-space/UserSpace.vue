@@ -401,7 +401,7 @@ export default {
         { name: "资源", visible: true, url: "download" },
         { name: "收藏", visible: true, url: "collect" },
         { name: "关注/订阅/互动", visible: true, url: "sub" },
-        { name: "社区", visible: false, url: "community" },
+        { name: "社区", visible: false, url: "blogCommunity" },
         { name: "帖子", visible: false, url: "bbs" },
         { name: "问答", visible: false, url: "ask" },
         { name: "课程", visible: false, url: "edu" },

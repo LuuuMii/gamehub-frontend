@@ -51,7 +51,7 @@ export default {
         },
         {
           name: "订阅专栏",
-          url: "column",
+          url: "watchedColumn",
         },
         {
           name: "参与的活动",
