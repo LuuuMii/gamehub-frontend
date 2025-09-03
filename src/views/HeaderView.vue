@@ -12,6 +12,7 @@
           <li><router-link to="/about">游戏</router-link></li>
           <li><router-link to="/post/123">论坛</router-link></li>
           <li><router-link to="/userspace/123">关于</router-link></li>
+          <li><router-link to="/create/editor">编辑</router-link></li>
         </ul>
       </div>
     </div>

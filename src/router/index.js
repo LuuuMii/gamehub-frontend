@@ -34,6 +34,12 @@ const routes = [
     props: true,
   },
   {
+    path: '/create/editor',
+    name: 'editor',
+    component: () => import('@/views/editor/EditorView.vue'),
+    props: true,
+  },
+  {
     path: '/userspace/:id',
     name: 'userSpace',
     component: OtherSpace,
