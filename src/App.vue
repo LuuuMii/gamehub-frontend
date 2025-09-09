@@ -13,6 +13,10 @@
     <div v-if="showComment" class="comment">
       <CommentView></CommentView>
     </div>
+    <!-- 登录页 -->
+    <div class="login">
+      <LoginComponent></LoginComponent>
+    </div>
   </div>
 </template>
 
@@ -21,12 +25,14 @@
 import HeaderView from './views/HeaderView.vue'
 import FooterView from './views/FooterView.vue'
 import CommentView from './views/comment/CommentView.vue'
+import LoginComponent from "@/components/LoginComponent.vue"
 import { eventBus } from './mitt/eventBus'
 export default {
   components: {
     HeaderView,
     FooterView,
-    CommentView
+    CommentView,
+    LoginComponent
   },
   data() {
     return {
@@ -104,6 +110,18 @@ ul, li {
 
   overflow-y: auto;  /* 超出时显示纵向滚动条 */
   overflow-x: hidden; /* 横向隐藏滚动条 */
+}
+.login{
+  width: 820px;
+  height: 430px;
+  background-color: #fff;
+  border-radius: 8px;
+
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
 }
 
 </style>

@@ -23,6 +23,7 @@
           :defaultConfig="editorConfig"
           :mode="mode"
           @onCreated="onCreated"
+          @onChange="editorChange"
         />
       </div>
 
@@ -211,7 +212,7 @@
             <i class="el-icon-arrow-down"></i>
           </div>
         </div>
-        <div class="flex-align" style="margin-left: 450px;">
+        <div class="flex-align" style="margin-left: 450px">
           <div class="flex-align draft-btn">
             <span>保存草稿</span>
             <img src="@/assets/icon/arrow_down_1A1A1A.svg" />
@@ -225,11 +226,13 @@
           </div>
         </div>
       </div>
+      
     </div>
   </div>
 </template>
 <script>
 import Vue from "vue";
+//import TocList from '@/components/TocList.vue'
 import { Editor, Toolbar } from "@wangeditor/editor-for-vue";
 
 export default Vue.extend({
@@ -520,6 +523,7 @@ export default Vue.extend({
       choosedSubTagList: [
         //被选择后的子标签
       ],
+      tocList: [],
     };
   },
   computed: {
@@ -537,6 +541,53 @@ export default Vue.extend({
     onCreated(editor) {
       this.editor = Object.seal(editor); // 一定要用 Object.seal() ，否则会报错
       console.log("所有菜单 key：", editor.getAllMenuKeys());
+    },
+    editorChange() {
+      this.generateToc();
+      console.log(this.tocList);
+    },
+    generateToc() {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(this.html, "text/html");
+      const headings = doc.querySelectorAll("h1,h2,h3,h4,h5");
+
+      const stack = []; // 用来维护层级关系
+      const toc = [];
+
+      headings.forEach((node, index) => {
+        if (!node.id) {
+          node.id = `heading-${index}`;
+        }
+
+        const item = {
+          id: node.id,
+          text: node.textContent,
+          level: Number(node.tagName.replace("H", "")),
+          children: [],
+        };
+
+        // 如果没有父节点（即第一个元素 或者它是 H1）
+        if (stack.length === 0 || item.level === 1) {
+          toc.push(item);
+          stack.length = 0; // 清空栈
+          stack.push(item);
+        } else {
+          // 找到合适的父节点（栈顶层级必须比当前小）
+          while (stack.length && stack[stack.length - 1].level >= item.level) {
+            stack.pop();
+          }
+
+          if (stack.length) {
+            stack[stack.length - 1].children.push(item);
+          } else {
+            toc.push(item);
+          }
+
+          stack.push(item);
+        }
+      });
+
+      this.tocList = toc;
     },
     autoResize() {
       const textarea = this.$refs.textarea;
@@ -1117,7 +1168,7 @@ export default Vue.extend({
   color: #1a1a1a;
   margin-right: 8px;
 }
-.top-or-type-btn{
+.top-or-type-btn {
   cursor: pointer;
 }
 .top-or-type-btn span {
@@ -1125,7 +1176,7 @@ export default Vue.extend({
   color: #1a1a1a;
   font-weight: bold;
 }
-.draft-btn{
+.draft-btn {
   border: 1px solid #e5e5e5;
   border-radius: 4px;
   height: 32px;
@@ -1135,11 +1186,11 @@ export default Vue.extend({
   transition: 0.3s;
 }
 .draft-btn:hover,
-.scheduled-btn:hover{
+.scheduled-btn:hover {
   border: 1px solid #555666;
 }
 .draft-btn:hover span,
-.scheduled-btn:hover span{
+.scheduled-btn:hover span {
   color: #555666;
 }
 .draft-btn span {
@@ -1149,7 +1200,7 @@ export default Vue.extend({
   line-height: 32px;
   font-family: "Arial";
 }
-.scheduled-btn{
+.scheduled-btn {
   border: 1px solid #e5e5e5;
   border-radius: 4px;
   height: 32px;
@@ -1164,7 +1215,7 @@ export default Vue.extend({
   line-height: 32px;
   font-family: "Arial";
 }
-.publish-btn{
+.publish-btn {
   background-color: #fc5531;
   border-radius: 4px;
   height: 32px;
@@ -1172,13 +1223,13 @@ export default Vue.extend({
   padding: 0 10px;
   transition: 0.3s;
 }
-.publish-btn span{
+.publish-btn span {
   line-height: 32px;
   color: #fff;
   font-family: "Arial";
   font-size: 14px;
 }
-.publish-btn:hover{
+.publish-btn:hover {
   background-color: #fc1944;
 }
 </style>
