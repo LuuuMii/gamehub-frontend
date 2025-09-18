@@ -34,6 +34,12 @@ const routes = [
     props: true,
   },
   {
+    path: '/create/editor/:articleId',
+    name: 'editorContinue',
+    component: () => import('@/views/editor/EditorView.vue'),
+    props: true,
+  },
+  {
     path: '/create/editor',
     name: 'editor',
     component: () => import('@/views/editor/EditorView.vue'),
@@ -116,7 +122,7 @@ const routes = [
             name: 'activityView',
             component: ActivityView
           },
-          
+
         ]
       },
       {
@@ -152,5 +158,6 @@ const router = new VueRouter({
   mode: 'history',
   routes
 })
+
 
 export default router

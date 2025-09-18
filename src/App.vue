@@ -1,7 +1,7 @@
 <template>
   <div>
     <div>
-      <HeaderView></HeaderView>
+      <HeaderView class="hearrrrr"></HeaderView>
       <div>
         <router-view />
       </div>
@@ -14,7 +14,7 @@
       <CommentView></CommentView>
     </div>
     <!-- 登录页 -->
-    <div class="login">
+    <div v-if="showLogin" class="login">
       <LoginComponent></LoginComponent>
     </div>
   </div>
@@ -22,53 +22,79 @@
 
 
 <script>
-import HeaderView from './views/HeaderView.vue'
-import FooterView from './views/FooterView.vue'
-import CommentView from './views/comment/CommentView.vue'
-import LoginComponent from "@/components/LoginComponent.vue"
-import { eventBus } from './mitt/eventBus'
+import HeaderView from "./views/HeaderView.vue";
+import FooterView from "./views/FooterView.vue";
+import CommentView from "./views/comment/CommentView.vue";
+import LoginComponent from "@/components/LoginComponent.vue";
+import { eventBus } from "./mitt/eventBus";
+import { getUserInfoByToken } from "@/api/user.js";
 export default {
   components: {
     HeaderView,
     FooterView,
     CommentView,
-    LoginComponent
+    LoginComponent,
   },
   data() {
     return {
       showMask: false,
-      showComment: false
-    }
+      showComment: false,
+      showLogin: false,
+    };
   },
   created() {
     // 子页面通知我打开遮罩层
-    eventBus.on('openMask', () => {
-      this.showMask = true
-    })
-    // 子页面通知我打开评论区
-    eventBus.on('openMask', () => {
-      this.showComment = true
-    })
-
+    eventBus.on("openMask", () => {
+      this.showMask = true;
+    });
     // 子页面通知我关闭遮罩层
-    eventBus.on('closeMask', () => {
-      this.showMask = false
-    })
+    eventBus.on("closeMask", () => {
+      this.showMask = false;
+    });
+
+    // 子页面通知我打开评论区
+    eventBus.on("openComment", () => {
+      this.showComment = true;
+    });
     // 子页面通知我关闭评论区
-    eventBus.on('closeMask', () => {
-      this.showComment = false
-    })
+    eventBus.on("closeComment", () => {
+      this.showComment = false;
+    });
+
+    //子页面通知我打开登录页面
+    eventBus.on("openLogin", () => {
+      this.showLogin = true;
+    });
+    //子页面通知我关闭登录页面
+    eventBus.on("closeLogin", () => {
+      this.showLogin = false;
+    });
+    this.initData();
   },
   methods: {
     closeAll() {
-      this.showMask = false
-      this.showComment = false
+      this.showMask = false;
+      this.showComment = false;
       // 通知子页面关闭弹窗
-      eventBus.emit('closePopup')
-      eventBus.emit('closeComment')
-    }
-  }
-}
+      eventBus.emit("closePopup");
+      eventBus.emit("closeComment");
+    },
+    initData() {
+      const token = localStorage.getItem("token");
+
+      if (token) {
+        this.$store.commit("setToken", token);
+        getUserInfoByToken(token).then((res) => {
+          if (res.code === 200) {
+            this.$store.commit("setUser",res.data);
+          }else{
+            localStorage.removeItem("token");
+          }
+        });
+      }
+    },
+  },
+};
 </script>
 
 
@@ -78,17 +104,24 @@ export default {
   padding: 0;
   box-sizing: border-box;
 }
-html,body{
+html,
+body {
   height: 100%;
   margin: 0;
   padding: 0;
 }
-ul, li {
+ul,
+li {
   margin: 0;
   padding: 0;
   list-style: none;
 }
-.myHeader{
+.hearrrrr {
+  position: sticky;
+  top: 0;
+  z-index: 999;
+}
+.myHeader {
   width: 100%;
   height: 55px;
 }
@@ -99,7 +132,7 @@ ul, li {
   background: rgba(0, 0, 0, 0.45);
   z-index: 998;
 }
-.comment{
+.comment {
   position: fixed;
   top: 0;
   right: 0;
@@ -108,10 +141,10 @@ ul, li {
   background-color: #fff;
   z-index: 999;
 
-  overflow-y: auto;  /* 超出时显示纵向滚动条 */
+  overflow-y: auto; /* 超出时显示纵向滚动条 */
   overflow-x: hidden; /* 横向隐藏滚动条 */
 }
-.login{
+.login {
   width: 820px;
   height: 430px;
   background-color: #fff;
@@ -123,5 +156,4 @@ ul, li {
   transform: translate(-50%, -50%);
   z-index: 9999;
 }
-
 </style>

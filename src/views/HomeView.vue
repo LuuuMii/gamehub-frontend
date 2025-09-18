@@ -187,13 +187,17 @@
         </div>
       </div>
     </div>
+
   </div>
 </template>
 
 <script>
+
 export default {
   name: "HomeView",
-  components: {},
+  components: {
+    
+  },
   data() {
     return {
       currentPicIndex: 0,
@@ -790,7 +794,7 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.post-hot-right-content-title:hover{
+.post-hot-right-content-title:hover {
   cursor: pointer;
   color: #777;
 }
@@ -800,4 +804,5 @@ export default {
   font-family: "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Segoe UI",
     sans-serif;
 }
+
 </style>

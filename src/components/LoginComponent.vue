@@ -40,12 +40,14 @@
             短信登录
           </div>
         </div>
+        <!-- 账号密码登录 -->
         <div class="login-form" v-show="loginType === 0">
           <div class="account-box">
             <span class="form-info margin-right-20">账号</span>
             <input
               type="text"
               placeholder="请输入账号"
+              v-model="username"
               maxlength="30"
               style="width: 310px"
             />
@@ -54,6 +56,7 @@
             <span class="form-info margin-right-20">密码</span>
             <input
               :type="isShowPassword ? 'text' : 'password'"
+              v-model="password"
               placeholder="请输入密码"
               maxlength="30"
               style="width: 210px"
@@ -73,6 +76,7 @@
             <div class="forget-password">忘记密码?</div>
           </div>
         </div>
+        <!-- 手机号登录 -->
         <div class="login-form" v-show="loginType === 1">
           <div class="account-box">
             <div class="choose-phone-type-box">
@@ -104,15 +108,61 @@
             />
           </div>
         </div>
-        <div class="login-btn-box">按钮</div>
-        <div>其他方式登录</div>
-        <div>微信登录 微博登录</div>
+        <div class="login-btn-box">
+          <div class="btn-box-pwd" v-show="loginType === 0">
+            <div class="btn-register">注册</div>
+            <div
+              class="btn-login"
+              :class="{
+                'btn-login-active': username !== '' && password !== '',
+              }"
+              :disabled="isloginLoading"
+              @click="loginByUsernameHandler"
+            >
+              登录
+            </div>
+          </div>
+          <div class="login-btn-phone" v-show="loginType === 1">
+            <div class="btn-phone">登录/注册</div>
+          </div>
+        </div>
+        <div class="other-way-to-login">其他方式登录</div>
+        <div class="other-way-to-login-box">
+          <div class="other-way-to-login-btn margin-right-30">
+            <img src="@/assets/icon/wxicon.png" />
+            <div>微信登录</div>
+          </div>
+          <div class="other-way-to-login-btn margin-right-30">
+            <img src="@/assets/icon/wbicon.png" />
+            <div>微博登录</div>
+          </div>
+          <div class="other-way-to-login-btn">
+            <img src="@/assets/icon/qqicon.png" />
+            <div>QQ登录</div>
+          </div>
+        </div>
+        <!-- 关闭页面按钮 -->
+        <div class="login-close-btn" @click="closeLogin"></div>
+      </div>
+      <div class="friendly-tips">
+        <div>未注册过哔哩哔哩的手机号，我们将自动帮你注册账号</div>
+        <div>
+          <span
+            >登录活完成注册即代表你同意
+            <span class="important-tip">用户协议</span>
+            和
+            <span class="important-tip">隐私政策</span>
+          </span>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import { eventBus } from "@/mitt/eventBus";
+import { loginByUsername, getUserInfoById } from "@/api/user";
+
 export default {
   name: "LoginComponent",
   data() {
@@ -120,7 +170,44 @@ export default {
       isQrCodeExpired: false,
       loginType: 0,
       isShowPassword: false,
+      username: "",
+      password: "",
+      isloginLoading: false,
     };
+  },
+  methods: {
+    closeLogin() {
+      eventBus.emit("closeLogin");
+      eventBus.emit("closeMask");
+    },
+    // 通过账号密码登录
+    loginByUsernameHandler() {
+      this.isloginLoading = true;
+      const user = {
+        username: this.username,
+        password: this.password,
+      };
+      if (this.username !== "" && this.password !== "") {
+        loginByUsername(user).then((res) => {
+          if (res.code === 200) {
+            //存储个人信息到vuex
+            this.$store.commit("setToken", res.data.token);
+            //存储token 到 localstroage
+            localStorage.setItem("token", res.data.token);
+            //获取个人信息
+            getUserInfoById(res.data.uid).then((res) => {
+              this.$store.commit("setUser", res.data);
+            });
+
+            this.$message.success(res.message);
+            this.closeLogin();
+          } else {
+            this.$message.error(res.message);
+          }
+        });
+      }
+      this.isloginLoading = false;
+    },
   },
 };
 </script>
@@ -355,5 +442,123 @@ input[type="password"]::placeholder {
 }
 .get-verification-code {
   color: #00a1d6;
+}
+.login-btn-box {
+  width: 100%;
+  margin-top: 18px;
+}
+.btn-box-pwd,
+.login-btn-phone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-register,
+.btn-login,
+.btn-phone {
+  width: 190px;
+  height: 40px;
+  border: 1px solid #e3e5e7;
+  border-radius: 8px;
+  text-align: center;
+  line-height: 40px;
+  font-size: 14px;
+  font-family: "PingFang SC";
+}
+.btn-register {
+  color: #18191c;
+  background-color: #fff;
+  margin-right: 10px;
+  cursor: pointer;
+}
+.btn-login {
+  color: #fff;
+  background-color: #7fd6f5;
+  cursor: not-allowed;
+}
+.btn-login[disabled] {
+  pointer-events: none;
+  opacity: 0.6; /* 禁用状态样式 */
+}
+.btn-login-active {
+  background-color: #00aeec;
+  cursor: pointer;
+}
+.btn-login-active:hover {
+  background-color: #26baef;
+}
+.btn-phone {
+  background-color: #00aeec;
+  cursor: pointer;
+  color: #fff;
+}
+.btn-phone:hover {
+  background-color: #26baef;
+}
+.other-way-to-login {
+  width: 100%;
+  text-align: center;
+  font-size: 13px;
+  color: #9499a0;
+  font-family: "PingFang SC";
+  margin-top: 24px;
+}
+.other-way-to-login-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 12px;
+}
+.other-way-to-login-btn {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+.other-way-to-login-btn img {
+  width: 28px;
+  height: 28px;
+  object-fit: cover;
+  display: block;
+  margin-right: 8px;
+}
+.other-way-to-login-btn div {
+  height: 16px;
+  font-size: 13px;
+  line-height: 16px;
+  font-family: "PingFang SC";
+  color: #9499a0;
+}
+.margin-right-30 {
+  margin-right: 30px;
+}
+.login-close-btn {
+  width: 32px;
+  height: 32px;
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: url("@/assets/icon/login_close.svg") no-repeat;
+  background-size: 100% 100%;
+  cursor: pointer;
+  z-index: 2;
+}
+.friendly-tips {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.friendly-tips div {
+  font-size: 13px;
+  color: #9499a0;
+  font-family: "PingFang SC";
+}
+.important-tip {
+  color: #00a1d6;
+  cursor: pointer;
 }
 </style>

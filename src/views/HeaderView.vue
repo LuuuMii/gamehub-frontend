@@ -45,6 +45,110 @@
             </template>
           </a>
         </li>
+        <li v-if="userId == null">
+          <div class="not-logged" @click="openLogin">登录</div>
+        </li>
+        <li
+          v-if="userAvatar !== null"
+          @mouseenter="mouseenterHandlerForUserInfo"
+          @mouseleave="mouseleaveHandlerForUserInfo"
+        >
+          <img class="login-avatar" :src="userAvatar" />
+        </li>
+        <!-- 展开个人信息栏目 -->
+        <div
+          v-if="isShowUserInfo"
+          class="userinfo-popover"
+          @mouseenter="mouseenterHandlerForUserInfo"
+          @mouseleave="mouseleaveHandlerForUserInfo"
+        >
+          <div class="popover-top">
+            <div>
+              <img class="popover-user-avatar" :src="user.avatar" />
+            </div>
+            <div>
+              <div class="popover-username">{{ user.nickname }}</div>
+              <img
+                class="popover-vip-icon"
+                src="@/assets/vip/csdn-no-vip.png"
+              />
+            </div>
+          </div>
+          <div class="popover-mid">
+            <div class="popover-one-data">
+              <div class="popover-one-data-top">1</div>
+              <div class="popover-one-data-bottom">粉丝</div>
+            </div>
+            <div class="popover-one-data">
+              <div class="popover-one-data-top">78</div>
+              <div class="popover-one-data-bottom">关注</div>
+            </div>
+            <div class="popover-one-data">
+              <div class="popover-one-data-top">--</div>
+              <div class="popover-one-data-bottom">获赞</div>
+            </div>
+          </div>
+          <div class="popover-bottom">
+            <div class="popover-divider"></div>
+
+            <div class="popover-img-text-box">
+              <img class="popover-img-box" src="@/assets/icon/user/1.png" />
+              <div class="popover-text-box">我的主页</div>
+            </div>
+            <div class="popover-img-text-box">
+              <img class="popover-img-box" src="@/assets/icon/user/2.png" />
+              <div class="popover-text-box">个人中心</div>
+            </div>
+            <div class="popover-img-text-box">
+              <img class="popover-img-box" src="@/assets/icon/user/3.png" />
+              <div class="popover-text-box">内容管理</div>
+            </div>
+            <div class="popover-img-text-box">
+              <img class="popover-img-box" src="@/assets/icon/user/4.png" />
+              <div class="popover-text-box">会员中心</div>
+            </div>
+
+            <div class="popover-divider"></div>
+
+            <div class="popover-img-text-box">
+              <img class="popover-img-box" src="@/assets/icon/user/5.png" />
+              <div class="popover-text-box">已购内容</div>
+            </div>
+            <div class="popover-img-text-box">
+              <img class="popover-img-box" src="@/assets/icon/user/6.png" />
+              <div class="popover-text-box">我的订单</div>
+            </div>
+            <div class="popover-img-text-box">
+              <img class="popover-img-box" src="@/assets/icon/user/7.png" />
+              <div class="popover-text-box">我的钱包</div>
+            </div>
+            <div class="popover-img-text-box my-level">
+              <img class="popover-img-box" src="@/assets/icon/user/8.png" />
+              <div class="popover-text-box">我的等级</div>
+              <img
+                class="popover-icon-box"
+                src="@/assets/icon/user/right-arrow.png"
+              />
+              <div class="popover-right">
+                <div class="popover-level">博客等级</div>
+                <div class="popover-level">下载等级</div>
+              </div>
+            </div>
+
+            <div class="popover-divider"></div>
+
+            <div class="popover-img-text-box" @click="logout">
+              <img class="popover-img-box" src="@/assets/icon/user/8.png" />
+              <div class="popover-text-box">退出</div>
+            </div>
+          </div>
+        </div>
+        <li>
+          <div class="right-one-bar">
+            <img src="@/assets/icon/music_FFF.svg" />
+            <span>音乐盒</span>
+          </div>
+        </li>
         <li>
           <router-link to="/">音乐盒</router-link>
         </li>
@@ -54,8 +158,11 @@
         <li>
           <router-link to="/">登录</router-link>
         </li>
-        <li>
-          <router-link to="/">登录</router-link>
+        <li @click="headerPushRouter('/create/editor')">
+          <div class="right-one-bar">
+            <img src="@/assets/icon/add_circle_FFF.svg" />
+            <span>创作</span>
+          </div>
         </li>
       </ul>
     </div>
@@ -64,12 +171,18 @@
 
 
 <script>
+import { eventBus } from "@/mitt/eventBus";
+import { mapState } from "vuex";
 export default {
   data() {
     return {
       restaurants: [],
       queryContent: "",
       isShowInput: false,
+      userId: null,
+      userAvatar: null,
+      isShowUserInfo: false,
+      showUserInfoTimer: null,
     };
   },
   methods: {
@@ -222,9 +335,51 @@ export default {
         }
       });
     },
+    openLogin() {
+      eventBus.emit("openLogin");
+      eventBus.emit("openMask");
+    },
+    //鼠标移入个人信息出现
+    mouseenterHandlerForUserInfo() {
+      this.clearTimer();
+      this.showUserInfoTimer = setTimeout(() => {
+        this.isShowUserInfo = true;
+      }, 500);
+    },
+    //鼠标移出个人信息消失
+    mouseleaveHandlerForUserInfo() {
+      this.clearTimer();
+      this.showUserInfoTimer = setTimeout(() => {
+        this.isShowUserInfo = false;
+      }, 500);
+    },
+    clearTimer() {
+      if (this.showUserInfoTimer) {
+        clearTimeout(this.showUserInfoTimer);
+        this.showUserInfoTimer = null;
+      }
+    },
+    logout() {
+      localStorage.removeItem("token");
+      window.location.reload();
+    },
+    headerPushRouter(url) {
+      if (this.$route.path !== url) {
+        this.$router.push(url);
+      }
+    },
   },
   mounted() {
     this.restaurants = this.loadAll();
+  },
+  computed: {
+    ...mapState(["user", "token"]),
+  },
+  watch: {
+    user(newVal) {
+      this.userAvatar = newVal.avatar;
+      this.userId = newVal.id;
+    },
   },
 };
 </script>
@@ -234,10 +389,16 @@ export default {
   width: 100%;
   height: 65px;
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
   padding: 0 20px;
   background-color: #31393c;
+  /* 背景图设置 */
+  background-image: url("@/assets/headerbg.avif");
+  background-repeat: no-repeat;
+  background-position: top center;
+  background-size: auto;
+  transition: all 0.3s ease;
 }
 
 .leftContainer {
@@ -300,8 +461,196 @@ export default {
   color: white;
   font-size: 16px;
 }
+.right-one-bar {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+.right-one-bar img {
+  width: 20px;
+  height: 20px;
+  object-fit: cover;
+  display: block;
+}
+.right-one-bar span {
+  font-size: 13px;
+  font-weight: 500;
+  color: #fff;
+  font-family: "PingFang SC";
+}
+
+.right-one-bar:hover img {
+  animation: floatUp 0.4s ease forwards;
+}
+
+@keyframes floatUp {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
 
 .rightNavList li a:hover {
   color: #007bff;
+}
+.login-avatar {
+  width: 36px;
+  height: 36px;
+  object-fit: cover;
+  display: block;
+  cursor: pointer;
+  border-radius: 50%;
+}
+.not-logged {
+  width: 36px;
+  height: 36px;
+  font-size: 13px;
+  color: #fff;
+  background-color: #00aeec;
+  text-align: center;
+  line-height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.userinfo-popover {
+  z-index: 9999999;
+  position: absolute;
+  top: 67px;
+  width: 218px;
+  background-color: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  padding: 0 0 4px;
+  transition: all 0.3s ease;
+}
+.popover-top {
+  display: flex;
+  padding: 20px 24px 14px;
+}
+.popover-user-avatar {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  display: block;
+  border-radius: 50%;
+  cursor: pointer;
+  margin: 0 8px 0 0;
+}
+.popover-username {
+  font-size: 16px;
+  color: #1a1a1a;
+  font-family: "PingFang SC";
+  font-weight: 500;
+  margin: 0 0 2px;
+}
+.popover-vip-icon {
+  width: 36px;
+  height: 16px;
+  object-fit: cover;
+  display: block;
+  cursor: pointer;
+}
+.popover-mid {
+  display: flex;
+  justify-content: space-around;
+  padding: 0 0 12px;
+}
+.popover-one-data {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+}
+
+.popover-one-data-top {
+  font-size: 14px;
+  color: #1a1a1a;
+  font-family: "PingFang SC";
+  font-weight: 500;
+}
+.popover-one-data-bottom {
+  font-size: 14px;
+  color: #999aaa;
+  font-family: "PingFang SC";
+  margin-top: 2px;
+}
+
+.popover-divider {
+  border-top: 1px solid #f2f2f2;
+  margin: 6px 0;
+}
+.popover-img-text-box {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 16px;
+  cursor: pointer;
+}
+.popover-img-text-box:hover {
+  background-color: #f2f2f2;
+}
+.popover-img-box {
+  width: 16px;
+  height: 16px;
+  object-fit: cover;
+  display: block;
+  margin: 0 8px 0 0;
+}
+.popover-text-box {
+  color: #555666;
+  font-size: 14px;
+  font-family: "PingFang SC";
+}
+.popover-icon-box {
+  width: 12px;
+  height: 12px;
+  object-fit: cover;
+  display: block;
+  margin: 0 0 0 85px;
+}
+.popover-right {
+  position: absolute;
+  right: 0;
+  top: 0px;
+  transform: translate(100%);
+
+  width: 160px;
+  background-color: #fff;
+  border-radius: 8px;
+
+  padding: 4px 0;
+
+  display: none;
+}
+.my-level {
+  position: relative;
+}
+.my-level:hover .popover-right,
+.popover-right:hover {
+  display: block;
+}
+
+.popover-level {
+  display: flex;
+  align-items: center;
+  width: 160px;
+  height: 40px;
+  padding: 0 24px;
+  cursor: pointer;
+
+  color: #555666;
+  font-size: 14px;
+  font-family: "PingFang SC";
+}
+.popover-level:hover {
+  background-color: #f2f2f2;
 }
 </style>

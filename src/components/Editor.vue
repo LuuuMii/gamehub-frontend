@@ -1,21 +1,39 @@
 <template>
   <div>
-    <div style="border: 1px solid #ccc">
+    <div class="ccccccc" style="border: 1px solid #ccc">
       <div class="toolbar-div">
         <Toolbar :editor="editor" :defaultConfig="toolbarConfig" :mode="mode" />
       </div>
 
       <div class="editor-div">
+        <div class="draft-box">
+          <div class="draft-type-box">草稿</div>
+          <div class="draft-title-box">
+            标题内容标题内容标题内容标题内容标题内容标题内容标题内容标题内容标题内容标题内容标题内容标题内容标题内容
+          </div>
+          <div class="continue-draft-btn">继续编辑</div>
+          <div class="more-draft-btn">更多草稿</div>
+          <img
+            class="close-draft-box-icon"
+            src="@/assets/icon/closeBt.png"
+            alt=""
+          />
+        </div>
         <div class="textarea-div">
           <textarea
             v-model="title"
             maxlength="100"
             class="plain-textarea"
-            placeholder="请输入内容…"
+            placeholder="请输入文章标题（5~100个字）"
             @input="autoResize"
             ref="textarea"
           ></textarea>
-          <div class="title-limit">{{ title.length }}/100</div>
+          <div class="title-limit" v-if="title.length >= 5">
+            {{ title.length }}/100
+          </div>
+          <div class="title-limit" v-if="title.length < 5">
+            还需输入{{ 5 - title.length }}个字
+          </div>
         </div>
         <Editor
           style="min-height: 600px; overflow-y: hidden"
@@ -114,6 +132,50 @@
               @change="handleFileChange"
             />
           </div>
+          <!-- 裁剪弹窗 -->
+          <div v-if="showCropper" class="cropper-box">
+            <div class="cropper-top">
+              <span>图片编辑</span>
+              <img
+                src="@/assets/icon/closeBt.png"
+                @click="closeCropper"
+                alt="关闭"
+              />
+            </div>
+            <div class="cropper-middle">
+              <div class="cropper-component-box">
+                <vue-cropper
+                  ref="cropper"
+                  :img="previewUrl"
+                  :output-size="1"
+                  :output-type="'png'"
+                  :fixed-box="true"
+                  :auto-crop="true"
+                  @real-time="updatePreview"
+                />
+              </div>
+              <div class="preview-box">
+                <div class="preview-img-box">
+                  <img :src="croppedPreview" alt="" />
+                </div>
+                <div class="preview-words">封面图预览</div>
+              </div>
+            </div>
+            <div class="img-size-btns">
+              <div class="img-size-btn" @click="zoomIn">
+                <img src="@/assets/icon/add_999999.svg" />
+              </div>
+              <div class="img-size-btn" @click="zoomOut">
+                <img src="@/assets/icon/minus_999999.svg" />
+              </div>
+            </div>
+            <div class="cropper-btns-box">
+              <div class="upload-cropper-img-btn" @click="confirmCrop">
+                确认上传
+              </div>
+            </div>
+          </div>
+
           <div class="without-img" v-show="showImgList > 0">
             <span>暂无内容图片,请在正文中添加图片</span>
           </div>
@@ -226,7 +288,6 @@
           </div>
         </div>
       </div>
-      
     </div>
   </div>
 </template>
@@ -524,7 +585,14 @@ export default Vue.extend({
         //被选择后的子标签
       ],
       tocList: [],
+      articleId: null,
+      showCropper: false,
+      croppedPreview: "",
+      previewUrl: "",
     };
+  },
+  created() {
+    this.articleId = this.$route.params.articleId;
   },
   computed: {
     // 计算总页数
@@ -540,11 +608,9 @@ export default Vue.extend({
   methods: {
     onCreated(editor) {
       this.editor = Object.seal(editor); // 一定要用 Object.seal() ，否则会报错
-      console.log("所有菜单 key：", editor.getAllMenuKeys());
     },
     editorChange() {
       this.generateToc();
-      console.log(this.tocList);
     },
     generateToc() {
       const parser = new DOMParser();
@@ -598,7 +664,60 @@ export default Vue.extend({
       this.$refs.fileInput.click();
     },
     handleFileChange(e) {
-      console.log(e);
+      const file = e.target.files[0];
+      if (!file) return;
+
+      // 使用 URL.createObjectURL 生成临时可用 URL
+      this.previewUrl = URL.createObjectURL(file);
+
+      // 打开裁剪弹窗
+      this.showCropper = true;
+
+      // 清空之前裁剪结果
+      this.croppedPreview = "";
+    },
+    // 关闭弹窗
+    closeCropper() {
+      this.showCropper = false;
+      this.previewUrl = "";
+      this.croppedPreview = "";
+    },
+    // 实时裁剪预览
+    updatePreview() {
+      this.$refs.cropper.getCropBlob((blob) => {
+        // blob 转 URL
+        this.croppedPreview = URL.createObjectURL(blob);
+      });
+    },
+    // 确认裁剪
+    confirmCrop() {
+      const finalData = this.$refs.cropper.getCropData();
+      console.log("裁剪结果 base64:", finalData);
+
+      // TODO: 上传给后台或其他操作
+
+      this.closeCropper();
+    },
+    //放大
+    zoomIn() {
+      this.$refs.cropper.changeScale(0.2);
+    },
+    //缩小
+    zoomOut() {
+      this.$refs.cropper.changeScale(-0.2);
+    },
+
+    // 可选：base64 → Blob
+    dataURLtoBlob(dataurl) {
+      const arr = dataurl.split(",");
+      const mime = arr[0].match(/:(.*?);/)[1];
+      const bstr = atob(arr[1]);
+      let n = bstr.length;
+      const u8arr = new Uint8Array(n);
+      while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+      }
+      return new Blob([u8arr], { type: mime });
     },
     goLeft() {
       if (this.currentPage - 1 === 1) {
@@ -760,7 +879,6 @@ export default Vue.extend({
     //父标签点击事件
     chooseSupTag(index) {
       this.activeTagIndex = index;
-      console.log(this.activeTagIndex);
     },
     //子标签点击时间
     chooseSubTag(item) {
@@ -784,6 +902,15 @@ export default Vue.extend({
     this.autoResize();
     this.restaurants = this.loadAll();
   },
+  watch: {
+    articleId(newId) {
+      if (newId) {
+        console.log("切换到草稿模式，加载草稿ID =", newId);
+      } else {
+        console.log("切换到新建模式");
+      }
+    },
+  },
   beforeDestroy() {
     const editor = this.editor;
     if (editor == null) return;
@@ -793,13 +920,16 @@ export default Vue.extend({
 </script>
 <style src="@wangeditor/editor/dist/css/style.css"></style>  
 <style scoped>
+.ccccccc {
+  position: relative;
+}
 .toolbar-div {
   position: sticky;
-  top: 0;
+  top: 65px;
   display: flex;
   justify-content: center;
   border-bottom: 1px solid #ccc;
-  z-index: 999;
+  z-index: 99999;
 }
 .editor-div {
   width: 816px;
@@ -1231,6 +1361,164 @@ export default Vue.extend({
 }
 .publish-btn:hover {
   background-color: #fc1944;
+}
+.draft-box {
+  width: 100%;
+  height: 54px;
+  background-color: #f5f6f7;
+  display: flex;
+  align-items: center;
+  padding: 16px 24px;
+  margin: 0 0 24px;
+}
+.draft-type-box,
+.continue-draft-btn {
+  font-size: 14px;
+  color: #555666;
+  font-family: "SF Pro Display";
+  background-color: #fff;
+  border: 1px solid #ced0e2;
+  padding: 2px 5px;
+  margin-right: 16px;
+  cursor: pointer;
+}
+.draft-title-box {
+  font-size: 16px;
+  color: #222226;
+  font-family: "SF Pro Display";
+  font-weight: 500;
+  width: 380px;
+  margin-right: 16px;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.more-draft-btn {
+  font-size: 14px;
+  color: #555666;
+  font-family: "SF Pro Display";
+  margin-right: 16px;
+  cursor: pointer;
+}
+.close-draft-box-icon {
+  width: 12px;
+  height: 12px;
+  object-fit: cover;
+  display: flex;
+  cursor: pointer;
+}
+.cropper-box {
+  z-index: 99999;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 360px;
+  position: fixed;
+  border-radius: 16px;
+  background-color: pink;
+  padding: 24px;
+}
+.cropper-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.cropper-top span {
+  font-size: 18px;
+  color: #1a1a1a;
+  font-family: "SF Pro Display";
+  font-weight: 500;
+}
+.cropper-top img {
+  width: 16px;
+  height: 16px;
+  object-fit: cover;
+  display: block;
+  cursor: pointer;
+}
+.cropper-middle {
+  display: flex;
+  margin-top: 20px;
+}
+.cropper-component-box {
+  width: 240px;
+  height: 160px;
+}
+.preview-box {
+  margin-left: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.preview-img-box {
+  width: 188px;
+  height: 110px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid #f2f2f2;
+}
+.preview-img-box img {
+  width: 178px;
+  height: 100px;
+  object-fit: cover;
+  display: block;
+}
+.preview-words {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #bbbbbb;
+  font-family: "SF Pro Display";
+}
+.img-size-btns {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 240px;
+  margin-top: 10px;
+}
+.img-size-btn {
+  width: 32px;
+  height: 32px;
+
+  color: #999;
+  border: 1px solid #999;
+  border-radius: 6px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-right: 8px;
+
+  cursor: pointer;
+}
+.img-size-btn img {
+  width: 20px;
+  height: 20px;
+  object-fit: cover;
+  display: block;
+}
+.cropper-btns-box {
+  display: flex;
+  justify-content: right;
+  width: 100%;
+}
+.upload-cropper-img-btn {
+  margin: 12px 8px 0 0;
+  color: #fff;
+  font-size: 14px;
+  font-family: "SF Pro Display";
+  line-height: 32px;
+  text-align: center;
+  width: 88px;
+  height: 32px;
+  background-color: #fc5531;
+  border-radius: 4px;
+  padding: 0 16px;
+  cursor: pointer;
 }
 </style>
 <style>
