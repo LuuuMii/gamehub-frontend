@@ -130,7 +130,7 @@ li {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.45);
-  z-index: 998;
+  z-index: 1000;
 }
 .comment {
   position: fixed;

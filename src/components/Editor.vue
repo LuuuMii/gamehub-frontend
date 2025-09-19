@@ -121,7 +121,11 @@
             <img class="question no-key" src="@/assets/icon/question.svg" />
           </div>
 
-          <div class="upload" @click="triggerUpload">
+          <div
+            class="upload"
+            v-if="coverImgUrl === '' || coverImgUrl === null"
+            @click="triggerUpload"
+          >
             <img src="@/assets/icon/add_999999.svg" />
             <span>从本地上传</span>
             <input
@@ -130,6 +134,18 @@
               accept="image/*"
               style="display: none"
               @change="handleFileChange"
+            />
+          </div>
+          <!-- 有封面图的样式 -->
+          <div
+            v-if="coverImgUrl !== '' && coverImgUrl !== null"
+            class="cover-img-box"
+          >
+            <img class="cover-img" :src="coverImgUrl" />
+            <img
+              class="delete-cover-img-btn"
+              src="@/assets/icon/close_btn_FFF.svg"
+              @click="deleteCoverImg"
             />
           </div>
           <!-- 裁剪弹窗 -->
@@ -176,10 +192,10 @@
             </div>
           </div>
 
-          <div class="without-img" v-show="showImgList > 0">
+          <div class="without-img" v-if="previewImgList.length <= 0">
             <span>暂无内容图片,请在正文中添加图片</span>
           </div>
-          <div class="img-list">
+          <div class="img-list" v-if="previewImgList.length > 0">
             <div
               class="img-btn img-divider"
               :class="{ 'not-allow': isLeftMost }"
@@ -190,7 +206,7 @@
             <div class="all-img">
               <div
                 class="one-img"
-                v-for="(item, index) in showImgList"
+                v-for="(item, index) in previewImgList"
                 :key="index"
               >
                 <el-popover width="550px" trigger="hover" placement="bottom">
@@ -295,6 +311,14 @@
 import Vue from "vue";
 //import TocList from '@/components/TocList.vue'
 import { Editor, Toolbar } from "@wangeditor/editor-for-vue";
+import { eventBus } from "@/mitt/eventBus";
+import {
+  uploadCoverImg,
+  uploadArticleImg,
+  uploadImgByUrl,
+  deleteFiles,
+} from "@/api/oss.js";
+import { Message } from "element-ui";
 
 export default Vue.extend({
   name: "EditorComponent",
@@ -361,6 +385,78 @@ export default Vue.extend({
         editorProps: {
           attributes: {
             style: "min-height: 600px;",
+          },
+        },
+        MENU_CONF: {
+          uploadImage: {
+            customUpload: async (file, insertFn) => {
+              if (!file.type.startsWith("image/")) {
+                Message.error("请选择图片文件!");
+                return;
+              }
+              const formData = new FormData();
+              formData.append("file", file);
+              try {
+                const res = await uploadArticleImg(formData);
+                if (res.code === 200) {
+                  const alt = "";
+                  const img = {
+                    url: res.data
+                  };
+                  this.previewImgList.push(img);
+                  insertFn(res.data, alt, res.data);
+                }
+              } catch (err) {
+                Message.error("上传异常!");
+              }
+            },
+          },
+          insertImage: {
+            // 自定义插入逻辑
+            onInsertedImage(imageNode) {
+              console.log("插入的图片节点：", imageNode);
+            },
+            checkImage(src) {
+              if (!src) {
+                return;
+              }
+              if (src.indexOf("http") !== 0) {
+                Message.error("图片网址必须以 http/https 开头");
+                return "图片网址必须以 http/https 开头";
+              }
+              return true;
+            },
+            parseImageSrc: async (src) => {
+              console.log("src===" + src);
+              if ( src.startsWith("https://cmc-blog.oss-cn-hangzhou.aliyuncs.com")) {
+                return src;
+              }
+              if (src.indexOf("http") !== 0) {
+                return `http://${src}`;
+              }
+              try {
+                const imageDto = {
+                  name: 'sbzd',
+                  url: src
+                }
+                const res = await uploadImgByUrl(imageDto);
+
+                if (res.code === 200) {
+                  //赋值给previewImgList 
+                  const img = {
+                    url: res.data
+                  };
+                  this.previewImgList.push(img);
+                  return res.data;
+                } else {
+                  Message.error("上传失败!");
+                  return src;
+                }
+              } catch (err) {
+                Message.error("上传异常");
+                return src;
+              }
+            },
           },
         },
       },
@@ -589,10 +685,16 @@ export default Vue.extend({
       showCropper: false,
       croppedPreview: "",
       previewUrl: "",
+      coverImgUrl: "",
+      previewImgList:[]
     };
   },
   created() {
     this.articleId = this.$route.params.articleId;
+  },
+  mounted() {
+    this.autoResize();
+    this.restaurants = this.loadAll();
   },
   computed: {
     // 计算总页数
@@ -667,20 +769,43 @@ export default Vue.extend({
       const file = e.target.files[0];
       if (!file) return;
 
-      // 使用 URL.createObjectURL 生成临时可用 URL
-      this.previewUrl = URL.createObjectURL(file);
+      // 1. 判断是否为图片
+      if (!file.type.startsWith("image/")) {
+        alert("请选择图片文件！");
+        return;
+      }
 
-      // 打开裁剪弹窗
+      // 2. 检查图片尺寸
+      const img = new Image();
+      img.src = URL.createObjectURL(file);
+      img.onload = () => {
+        const width = img.width;
+        const height = img.height;
+
+        if (width < 300 || height < 200) {
+          this.$message.error(
+            `图片尺寸太小，至少需要 300x200px，当前是 ${width}x${height}px`
+          );
+          return;
+        }
+
+        // 尺寸合格，设置预览图
+        this.previewUrl = img.src;
+        this.openCropper();
+        this.croppedPreview = "";
+      };
+    },
+    openCropper() {
       this.showCropper = true;
-
-      // 清空之前裁剪结果
-      this.croppedPreview = "";
+      //打开遮罩层
+      eventBus.emit("openMask");
     },
     // 关闭弹窗
     closeCropper() {
       this.showCropper = false;
       this.previewUrl = "";
       this.croppedPreview = "";
+      eventBus.emit("closeMask");
     },
     // 实时裁剪预览
     updatePreview() {
@@ -691,10 +816,25 @@ export default Vue.extend({
     },
     // 确认裁剪
     confirmCrop() {
-      const finalData = this.$refs.cropper.getCropData();
-      console.log("裁剪结果 base64:", finalData);
+      this.$refs.cropper.getCropBlob((data) => {
+        console.log(data);
+        // Blog数据 转换 File
+        const file = new File([data], "coverImg.png", { type: "image/png" });
 
-      // TODO: 上传给后台或其他操作
+        //构造FormData
+        const formData = new FormData();
+        formData.append("file", file);
+
+        //3.上传给后台
+        uploadCoverImg(formData).then((res) => {
+          if (res.code === 200) {
+            this.coverImgUrl = res.data;
+            this.$message.success("封面更换成功!");
+          } else {
+            this.$message.error(res.message);
+          }
+        });
+      });
 
       this.closeCropper();
     },
@@ -705,6 +845,14 @@ export default Vue.extend({
     //缩小
     zoomOut() {
       this.$refs.cropper.changeScale(-0.2);
+    },
+    //删除封面图
+    deleteCoverImg() {
+      deleteFiles([this.coverImgUrl]).then((res) => {
+        if (res.code === 200) {
+          this.coverImgUrl = "";
+        }
+      });
     },
 
     // 可选：base64 → Blob
@@ -898,10 +1046,6 @@ export default Vue.extend({
       }
     },
   },
-  mounted() {
-    this.autoResize();
-    this.restaurants = this.loadAll();
-  },
   watch: {
     articleId(newId) {
       if (newId) {
@@ -929,7 +1073,7 @@ export default Vue.extend({
   display: flex;
   justify-content: center;
   border-bottom: 1px solid #ccc;
-  z-index: 99999;
+  z-index: 999;
 }
 .editor-div {
   width: 816px;
@@ -1187,6 +1331,38 @@ export default Vue.extend({
   color: #999999;
   margin-top: 12px;
 }
+.cover-img-box {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 160px;
+  height: 90px;
+  cursor: pointer;
+  border-radius: 8px;
+  margin-right: 16px;
+}
+.cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+  display: block;
+}
+.delete-cover-img-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 16px;
+  height: 16px;
+  object-fit: cover;
+  display: flex;
+  cursor: pointer;
+  border-radius: 50%;
+}
+.delete-cover-img-btn:hover {
+  background-color: red;
+}
 .without-img {
   height: 90px;
   width: 480px;
@@ -1291,7 +1467,7 @@ export default Vue.extend({
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
+  z-index: 999;
 }
 .word-count {
   font-size: 16px;
@@ -1417,7 +1593,7 @@ export default Vue.extend({
   height: 360px;
   position: fixed;
   border-radius: 16px;
-  background-color: pink;
+  background-color: #fff;
   padding: 24px;
 }
 .cropper-top {
