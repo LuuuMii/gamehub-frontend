@@ -78,6 +78,10 @@ export default {
       // 通知子页面关闭弹窗
       eventBus.emit("closePopup");
       eventBus.emit("closeComment");
+
+      eventBus.emit("closeScheduledDialog");
+
+      eventBus.emit("closeCollectionDialog");
     },
     initData() {
       const token = localStorage.getItem("token");
@@ -87,8 +91,14 @@ export default {
         getUserInfoByToken(token).then((res) => {
           if (res.code === 200) {
             this.$store.commit("setUser",res.data);
+            localStorage.setItem("userId",res.data.id);
+            localStorage.setItem("username",res.data.username);
+            localStorage.setItem("avatar",res.data.avatar);
           }else{
             localStorage.removeItem("token");
+            localStorage.removeItem("userId");
+            localStorage.removeItem("username");
+            this.$router.push("/");
           }
         });
       }
@@ -119,7 +129,7 @@ li {
 .hearrrrr {
   position: sticky;
   top: 0;
-  z-index: 999;
+  z-index: 199;
 }
 .myHeader {
   width: 100%;
@@ -130,16 +140,16 @@ li {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.45);
-  z-index: 1000;
+  z-index: 200;
 }
 .comment {
   position: fixed;
   top: 0;
   right: 0;
-  width: 450px;
+  width: 500px;
   height: 100vh;
   background-color: #fff;
-  z-index: 999;
+  z-index: 201;
 
   overflow-y: auto; /* 超出时显示纵向滚动条 */
   overflow-x: hidden; /* 横向隐藏滚动条 */
@@ -154,6 +164,6 @@ li {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 9999;
+  z-index: 201;
 }
 </style>

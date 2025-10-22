@@ -46,6 +46,12 @@ const routes = [
     props: true,
   },
   {
+    path: '/create/success',
+    name: 'success',
+    component: () => import('@/views/editor/EditorSuccess.vue'),
+    props: true,
+  },
+  {
     path: '/userspace/:id',
     name: 'userSpace',
     component: OtherSpace,

@@ -6,25 +6,30 @@
         <span class="comment-number">86</span>
       </div>
       <div>
-        <img class="close-btn" src="../../assets/icon/closeBt.png" @click="closeComment" />
+        <img
+          class="close-btn"
+          src="../../assets/icon/closeBt.png"
+          @click="closeComment"
+        />
       </div>
     </div>
     <!-- 评论内容 -->
     <div class="bottom-bar">
       <!-- 发布内容 -->
       <div class="publish-comment">
-        <img class="publish-avatar" src="../../assets/banner.jpg" />
+        <img class="publish-avatar" :src="userAvatar" />
         <div class="comment-content">
           <textarea
             class="ta"
             placeholder="欢迎高质量的评论，低质的评论会被折叠"
             rows="5"
+            v-model="commentContent"
             maxlength="1000"
           >
           </textarea>
           <div class="between-space-div">
             <div>
-              <span class="s1">还能输入<span class="s2">1000</span>个字符</span>
+              <span class="s1">还能输入<span class="s2">{{ 1000 - commentContent.length }}</span>个字符</span>
             </div>
             <div class="flex-div">
               <img
@@ -42,89 +47,78 @@
                 src="../../assets/icon/commentCodeIcon.png"
                 title="代码块"
               />
-              <div class="publish-btn">评论</div>
+              <div class="publish-btn" @click="postCommentHandler">评论</div>
               <div></div>
             </div>
           </div>
         </div>
       </div>
       <!-- 他人评论 -->
-      <div
-        class="other-comment"
-        v-for="(comment, index) in comments"
-        :key="index"
-      >
-        <!-- 头像 -->
-        <div>
-          <img class="other-avatar" src="../../assets/banner.jpg" />
-        </div>
-        <!-- 右边主题 -->
-        <div class="right-content">
-          <!-- 上半部分名字点赞等 -->
-          <div
-            class="between-div"
-            @mouseenter="showMoreBtn(index)"
-            @mouseleave="closeMoreBtn(index)"
-          >
-            <div class="flex-div">
-              <span class="other-comment-name">23遇见222</span>
-              <span class="other-comment-date">2小时前</span>
-            </div>
-            <div class="flex-div">
-              <div class="flex-div hover" :class="{ visible: comment.isShowMoreBtn }">
-                <img
-                  class="comment-icon1"
-                  src="../../assets/icon/commentLookMore.png"
-                />
-                <img
-                  class="comment-icon2"
-                  src="../../assets/icon/newCommentReplyWhite.png"
-                  @click="openReplyComment(index)"
-                />
-                <span class="reply-span" @click="openReplyComment(index)"
-                  >回复</span
-                >
-              </div>
-              <!-- 点赞 -->
-              <div class="flex-div">
-                <span class="like-num" v-show="comment.likeNum > 0">{{
-                  comment.likeNum
-                }}</span>
-                <img
-                  class="comment-icon3"
-                  :src="comment.isLiked ? likeIcon : unlikeIcon"
-                  @click="likeComment(index)"
-                />
-              </div>
-            </div>
+      <div class="other-comments-box">
+        <!-- 单一条他人评论 -->
+        <div
+          class="one-other-comment-box"
+          v-for="(item, index) in comments"
+          :key="index"
+        >
+          <!-- 左边头像 -->
+          <div class="left-avatar-box">
+            <img :src="item.userAvatar" alt="" />
           </div>
-          <!-- 下半部分span -->
-          <div>
-            <span
-              ref="contentSpans"
-              class="content-span"
-              :class="{ collapsed: !comment.isExpanded }"
-            >
-              {{ comment.content }}
-            </span>
+          <!-- 右边内容 -->
+          <div class="right-content-box">
             <div
-              class="expanded-btn"
-              v-if="comment.isOverflow"
-              @click="expandedComment(index)"
+              class="top-box"
+              @mouseenter="showMoreBtnHandler(item)"
+              @mouseleave="hiddenMoreBtnHandler(item)"
             >
-              {{ comment.isExpanded ? "收起" : "更多" }}
+              <div class="comment-data-box">
+                <span class="comment-name">{{ item.username }}</span>
+                <span class="comment-data">{{
+                  formatTimeAgo(item.createTime)
+                }}</span>
+              </div>
+              <div class="comment-op-box">
+                <div
+                  class="more-op-btn"
+                  :class="{
+                    'more-op-btn-active': activeMoreBtnIndex === item.id,
+                  }"
+                >
+                  <img src="@/assets/icon/more_777888.svg" />
+                </div>
+                <div
+                  class="reply-comment-btn"
+                  :class="{
+                    'reply-comment-btn-active': activeMoreBtnIndex === item.id,
+                  }"
+                  @click="openReplyComment(item.id)"
+                >
+                  <img src="@/assets/icon/newCommentReplyWhite.png" alt="" />
+                  <span>回复</span>
+                </div>
+                <div class="like-comment-btn">
+                  <img src="@/assets/icon/commentLikeHover.png" alt="" />
+                  <span>{{
+                    item.likeCount === 0 || !item.likeCount ? "" : 0
+                  }}</span>
+                </div>
+              </div>
             </div>
+            <div class="bottom-box">
+              {{ item.content }}
+            </div>
+            <!-- 回复框 -->
             <div
-              class="comment-content comment-content2"
-              v-if="activeReplyIndex === index"
+              class="reply-comment-box"
+              v-show="activeReplyIndex === item.id"
             >
               <textarea
-                class="ta"
-                placeholder="回复：23遇见"
-                rows="3"
-                maxlength="1000"
-              >
-              </textarea>
+                class="reply-ta"
+                rows="4"
+                v-model="replyCommentContent"
+                :placeholder="replyUserPlaceholder"
+              ></textarea>
               <div class="between-space-div">
                 <div>
                   <span class="s1"
@@ -142,24 +136,108 @@
                     src="../../assets/icon/commentCodeIcon.png"
                     title="代码块"
                   />
-                  <div class="publish-btn">评论</div>
+                  <div class="publish-btn" @click="replyCommentHandler(item)">
+                    评论
+                  </div>
+                  <div></div>
+                </div>
+              </div>
+            </div>
+            <!-- 评论下面的回复 -->
+            <div
+              class="reply-again-box"
+              v-for="(sub, index) in item.childrenList"
+              :key="index"
+            >
+              <div class="again-left">
+                <img :src="sub.userAvatar" alt="" />
+              </div>
+              <div class="again-right">
+                <div
+                  class="top-box"
+                  @mouseenter="showMoreBtnHandler(sub)"
+                  @mouseleave="hiddenMoreBtnHandler(sub)"
+                >
+                  <div class="comment-data-box">
+                    <span class="comment-name">{{ sub.username }} </span>
+                    <span class="comment-data">回复</span>
+                    <span class="comment-data">{{ sub.replyUsername }}</span>
+                    <span class="comment-data">{{
+                      formatTimeAgo(sub.createTime)
+                    }}</span>
+                  </div>
+                  <div class="comment-op-box">
+                    <div
+                      class="more-op-btn"
+                      :class="{ 'more-op-btn-active': activeMoreBtnIndex === sub.id }"
+                    >
+                      <img src="@/assets/icon/more_777888.svg" />
+                    </div>
+                    <div
+                      class="reply-comment-btn"
+                      @click="openReplyComment(sub.id)"
+                      :class="{ 'reply-comment-btn-active': activeMoreBtnIndex === sub.id }"
+                    >
+                      <img
+                        src="@/assets/icon/newCommentReplyWhite.png"
+                        alt=""
+                      />
+                      <span>回复</span>
+                    </div>
+                    <div class="like-comment-btn">
+                      <img src="@/assets/icon/commentLikeHover.png" alt="" />
+                      <span>1</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="bottom-box1">
+                  <span>{{ sub.content }}</span>
+                </div>
+                <div class="reply-comment-again-box" v-show="activeReplyIndex === sub.id">
+                  <textarea
+                    class="reply-ta"
+                    rows="4"
+                    v-model="replyCommentContent"
+                    :placeholder="replyUserPlaceholder"
+                  ></textarea>
+                  <div class="between-space-div">
+                    <div>
+                      <span class="s1"
+                        >还能输入<span class="s2">1000</span>个字符</span
+                      >
+                    </div>
+                    <div class="flex-div">
+                      <img
+                        class="img-icon"
+                        src="../../assets/icon/commentEmotionIcon.png"
+                        title="添加表情"
+                      />
+                      <img
+                        class="img-icon"
+                        src="../../assets/icon/commentCodeIcon.png"
+                        title="代码块"
+                      />
+                      <div class="publish-btn" @click="replyCommentSubHandler(item,sub)">评论</div>
+                      <div></div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-      <!-- 分页 -->
-      <div class="pagination-div">
-        <el-pagination background small layout="prev, pager, next" :total="100">
-        </el-pagination>
-      </div>
     </div>
   </div>
 </template>
 
 <script>
-import { eventBus } from '../../mitt/eventBus'
+import { eventBus } from "../../mitt/eventBus";
+import { formatTimeAgo } from "@/utils/time";
+import {
+  getArticleCommentByArticleId,
+  addArticleComment,
+} from "@/api/articleComment.js";
 export default {
   name: "CommentView",
   data() {
@@ -172,118 +250,120 @@ export default {
       likeNum: 3,
       isShowReplyComment: false,
       activeReplyIndex: null,
-      comments: [
-        {
-          name: "23遇见222",
-          date: "2小时前",
-          content:
-            "123123123123123213123123213213123213123内容丰富详实，观点独到深刻，论证条理清晰。无论是素材的运用还是逻辑的推进都恰到好处。语言简洁流畅且富有感染力，读罢让人深受启发。",
-          likeNum: 2,
-          isLiked: false,
-        },
-        {
-          name: "李四",
-          date: "3小时前",
-          content: "观点独到...",
-          likeNum: 3,
-          isLiked: false,
-        },
-        {
-          name: "李四",
-          date: "3小时前",
-          content: "观点独到...",
-          likeNum: 3,
-          isLiked: false,
-        },
-        {
-          name: "李四",
-          date: "3小时前",
-          content: "观点独到...",
-          likeNum: 3,
-          isLiked: false,
-        },
-        {
-          name: "李四",
-          date: "3小时前",
-          content: "观点独到...",
-          likeNum: 3,
-          isLiked: false,
-        },
-        {
-          name: "李四",
-          date: "3小时前",
-          content: "观点独到...",
-          likeNum: 3,
-          isLiked: false,
-        },
-        {
-          name: "李四",
-          date: "3小时前",
-          content: "观点独到...",
-          likeNum: 3,
-          isLiked: false,
-        },
-      ],
+      comments: [],
+      activeMoreBtnIndex: null,
+      commentContent: "",
+      replyCommentContent: "",
+      articleId: null,
+      replyUserPlaceholder: "",
+      userAvatar:null,
     };
   },
   created() {
     //修改数据
-    this.comments = this.comments.map((comment) => ({
-      ...comment,
-      isExpanded: false,
-      isOverflow: false,
-      isShowMoreBtn: false,
-    }));
+    this.initData();
+    this.userAvatar = localStorage.getItem("avatar");
   },
-  mounted() {
-    this.$nextTick(this.checkOverflow);
-    window.addEventListener("resize", this.checkOverflow);
-  },
-  beforeDestroy() {
-    window.removeEventListener("resize", this.checkOverflow);
-  },
+  mounted() {},
+  beforeDestroy() {},
   methods: {
-    showMoreBtn(index) {
-      this.comments[index].isShowMoreBtn = true;
-    },
-    closeMoreBtn(index) {
-      this.comments[index].isShowMoreBtn = false;
-    },
-    likeComment(index) {
-      const comment = this.comments[index];
-      console.log(comment);
-      if (!comment.isLiked) {
-        //变成喜欢 +1
-        this.comments[index].likeNum++;
-        this.comments[index].isLiked = true;
-        this.defaultIcon = this.likeIcon;
-      } else {
-        this.comments[index].likeNum--;
-        this.comments[index].isLiked = false;
-        this.defaultIcon = this.unlikeIcon;
+    formatTimeAgo,
+    async initData() {
+      const articleId = this.$route.params.id;
+      if (articleId) {
+        // 获取数据
+        this.articleId = articleId;
+        const articleCommentRes = await getArticleCommentByArticleId(articleId);
+        this.comments = articleCommentRes.data;
+        console.log(this.comments);
       }
     },
-    openReplyComment(index) {
-      this.activeReplyIndex = this.activeReplyIndex === index ? null : index;
+    // 发布评论
+    async postCommentHandler() {
+      if (this.commentContent === "") {
+        this.$message.info("请输入内容~");
+        return;
+      }
+      const commentData = {
+        articleId: this.articleId,
+        userId: localStorage.getItem("userId"),
+        content: this.commentContent,
+      };
+      const res = await addArticleComment(commentData);
+      if (res.code === 200) {
+        //发布成功  重新获取数据
+        const articleCommentRes = await getArticleCommentByArticleId(
+          this.articleId
+        );
+        this.comments = articleCommentRes.data;
+        this.commentContent = "";
+      }
     },
-    //判断文本是否超出
-    checkOverflow() {
-      this.$nextTick(() => {
-        this.comments.forEach((comment, i) => {
-          const el = this.$refs.contentSpans[i];
-          if (!el) return;
-          const lineHeight = parseFloat(getComputedStyle(el).lineHeight);
-          const maxHeight = lineHeight * 3;
-          comment.isOverflow = el.scrollHeight > maxHeight;
-        });
-      });
+    // 回复评论
+    async replyCommentHandler(item) {
+      if (this.replyCommentContent === "") {
+        return;
+      }
+      console.log(item);
+      const replyComment = {
+        articleId: this.articleId,
+        userId: localStorage.getItem("userId"),
+        parentId: item.id,
+        replyUserId: item.userId,
+        content: this.replyCommentContent,
+      };
+      const res = await addArticleComment(replyComment);
+      if (res.code === 200) {
+        //发布成功  重新获取数据
+        const articleCommentRes = await getArticleCommentByArticleId(
+          this.articleId
+        );
+        this.comments = articleCommentRes.data;
+        this.replyCommentContent = "";
+        this.hiddenMoreBtnHandler();
+        this.activeReplyIndex = null;
+      }
     },
-    //展开文本
-    expandedComment(index) {
-      this.comments[index].isExpanded = !this.comments[index].isExpanded;
+    async replyCommentSubHandler(item,sub){
+      if (this.replyCommentContent === "") {
+        return;
+      }
+      const replyComment = {
+        articleId: this.articleId,
+        userId: localStorage.getItem("userId"),
+        parentId: item.id,
+        replyUserId: sub.userId,
+        content: this.replyCommentContent,
+      };
+      const res = await addArticleComment(replyComment);
+      if (res.code === 200) {
+        //发布成功  重新获取数据
+        const articleCommentRes = await getArticleCommentByArticleId(
+          this.articleId
+        );
+        this.comments = articleCommentRes.data;
+        this.replyCommentContent = "";
+        this.hiddenMoreBtnHandler();
+        this.activeReplyIndex = null;
+      }
     },
-    closeComment(){
-      eventBus.emit('closeMask')
+    showMoreBtnHandler(item) {
+      this.activeMoreBtnIndex = item.id;
+      this.replyUserPlaceholder = "回复 " + item.username;
+    },
+    
+    hiddenMoreBtnHandler(item) {
+      console.log(item);
+      this.activeMoreBtnIndex = null;
+    },
+    openReplyComment(commentId) {
+      this.replyCommentContent = "";
+      this.activeReplyIndex = this.activeReplyIndex ? null : commentId;
+    },
+
+    closeComment() {
+      eventBus.emit("closeMask");
+      eventBus.emit("closeComment");
     },
   },
 };
@@ -428,130 +508,187 @@ export default {
   align-content: center;
   margin-left: 8px;
 }
-.other-comment {
+.other-comments-box {
+  width: 100%;
+}
+.one-other-comment-box {
   width: 100%;
   display: flex;
-  margin-top: 20px;
+  margin-top: 12px;
 }
-.other-avatar {
-  width: 30px;
-  height: 30px;
+.left-avatar-box img {
+  width: 32px;
+  height: 32px;
   object-fit: cover;
-  border-radius: 50%;
   display: block;
-  margin-right: 8px;
+  border-radius: 50%;
+  cursor: pointer;
 }
-.right-content {
+.right-content-box {
   width: 100%;
+  margin-left: 8px;
 }
-.between-div {
+.top-box {
   display: flex;
+  width: 100%;
   align-items: center;
   justify-content: space-between;
 }
-.other-comment-name {
-  color: #999aaa;
-  font-style: normal;
-  font-size: 12px;
-  font-family: "SF Pro Display", Roboto, Noto, Arial, "PingFang SC",
-    "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-  margin-right: 8px;
-}
-.other-comment-date {
-  color: #999aaa;
-  font-style: normal;
-  font-size: 12px;
-  font-family: "SF Pro Display", Roboto, Noto, Arial, "PingFang SC",
-    "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-}
-.comment-icon1 {
-  cursor: pointer;
-  width: 16px;
-  height: 16px;
-  object-fit: cover;
-  margin-right: 10px;
-}
-.comment-icon2 {
-  cursor: pointer;
-  width: 16px;
-  height: 16px;
-  object-fit: cover;
-  margin-right: 2px;
-}
-.reply-span {
-  cursor: pointer;
-  font-size: 12px;
-  color: #555666;
-  font-family: "SF Pro Display", Roboto, Noto, Arial, "PingFang SC",
-    "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-  margin-right: 10px;
-}
-
-.like-num {
-  font-size: 12px;
-  color: #b4b3b2;
-  font-family: "SF Pro Display", Roboto, Noto, Arial, "PingFang SC",
-    "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-  margin-right: 2px;
-}
-.comment-icon3 {
-  cursor: pointer;
-  width: 12px;
-  height: 12px;
-  object-fit: cover;
-}
-.hover {
+.comment-data-box {
   display: flex;
   align-items: center;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.2s ease;
-  transform: translateY(-2px); /* 初始稍微上移 */
-  transition: all 0.25s ease; /* 动画过渡 */
+  overflow: hidden; /* 超出隐藏 */
+  text-overflow: ellipsis; /* 显示省略号 */
+  white-space: nowrap; /* 不换行 */
 }
-
-.hover.visible {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0); /* 回到原位 */
+.comment-name,
+.comment-data {
+  font-size: 12px;
+  color: #777888;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 }
-.content-span {
-  margin-top: 4px;
+.comment-data {
+  margin-left: 4px;
+}
+.comment-op-box {
+  display: flex;
+  align-items: center;
+}
+.more-op-btn img {
+  width: 20px;
+  height: 20px;
+  object-fit: cover;
   display: block;
-  font-size: 12px;
-  line-height: 16px;
-  font-family: "SF Pro Display", Roboto, Noto, Arial, "PingFang SC",
-    "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  cursor: pointer;
 }
-.content-span.collapsed {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.comment-content2 {
-  margin-top: 8px;
-}
-.expanded-btn {
+.reply-comment-btn,
+.like-comment-btn {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 26px;
+  margin-left: 8px;
   cursor: pointer;
-  margin-top: 4px;
-  font-size: 12px;
-  color: #62d5e9;
 }
-.expanded-btn:hover {
-  color: #087fee;
-  font-weight: 400;
+.reply-comment-btn img,
+.like-comment-btn img {
+  width: 16px;
+  height: 16px;
+  object-fit: cover;
+  display: block;
+  margin-right: 2px;
 }
-.pagination-div{
+.reply-comment-btn span,
+.like-comment-btn span {
+  font-size: 14px;
+  color: #777888;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+}
+.more-op-btn,
+.reply-comment-btn {
+  opacity: 0;
+  transition: opacity 0.1s ease;
+}
+.more-op-btn-active,
+.reply-comment-btn-active {
+  opacity: 1;
+}
+.bottom-box {
   width: 100%;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 20px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+
+  font-size: 14px;
+  color: #222226;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+}
+.reply-comment-box {
+  width: 100%;
+  height: 120px;
+  padding: 12px 16px;
+  background-color: #f8f9fb;
+  border-radius: 8px;
+  margin-top: 8px;
+}
+.reply-ta {
+  width: 100%;
+  border: none; /* 去边框 */
+  outline: none; /* 去聚焦外框 */
+  box-shadow: none; /* 去阴影（有些浏览器默认有） */
+  background: transparent; /* 背景透明，如需底色可改成#f7f8fa等 */
+  resize: none; /* 禁止用户拖拽改变大小；想允许就删掉这行 */
+  -webkit-appearance: none; /* iOS/Safari 去默认样式 */
+  appearance: none;
+  overflow: auto;
+  font-size: 14px;
+  font-family: "SF Pro Display", Roboto, Noto, Arial, "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  margin-bottom: 4px;
+  border-bottom: 1px solid #e8e8ed;
+}
+.reply-ta::placeholder {
+  color: #999;
+  font-size: 12px;
+  font-family: "SF Pro Display", Roboto, Noto, Arial, "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+}
+/* 自定义滚动条 (仅webkit内核浏览器有效) */
+.reply-ta::-webkit-scrollbar {
+  width: 60px; /* 滚动条宽度 */
+}
+.reply-ta::-webkit-scrollbar-track {
+  background: transparent; /* 滚动条轨道背景 */
+}
+.reply-ta::-webkit-scrollbar-thumb {
+  background: #c1c1c1; /* 滑块颜色 */
+  border-radius: 4px; /* 圆角 */
+}
+.reply-ta::-webkit-scrollbar-thumb:hover {
+  background: #999; /* hover时更深 */
+}
+
+/* Firefox */
+.reply-ta {
+  scrollbar-width: thin; /* 细滚动条 */
+  scrollbar-color: #c1c1c1 transparent; /* 滑块色 + 背景色 */
+}
+.reply-again-box {
+  display: flex;
+  width: 100%;
+  margin-top: 12px;
+}
+.again-left img {
+  width: 24px;
+  height: 24px;
+  object-fit: cover;
+  display: block;
+  margin-right: 8px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.again-right {
+  width: 100%;
+}
+.bottom-box1 {
+  margin-top: 4px;
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+}
+.bottom-box1 span {
+  font-size: 14px;
+  color: #222226;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+}
+.reply-comment-again-box {
+  width: 100%;
+  height: 120px;
+  padding: 12px 16px;
+  background-color: #f8f9fb;
+  border-radius: 8px;
+  margin-top: 8px;
 }
 </style>

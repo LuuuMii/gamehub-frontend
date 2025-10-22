@@ -1,25 +1,29 @@
 <template>
   <div>
     <div class="ccccccc" style="border: 1px solid #ccc">
+      <!-- 编辑工具栏 -->
       <div class="toolbar-div">
         <Toolbar :editor="editor" :defaultConfig="toolbarConfig" :mode="mode" />
       </div>
 
+      <!-- 编辑区域 -->
       <div class="editor-div">
-        <div class="draft-box">
+        <!-- 草稿编辑box -->
+        <div class="draft-box" v-show="!articleId && isShowDraft && latestDraft">
           <div class="draft-type-box">草稿</div>
           <div class="draft-title-box">
-            标题内容标题内容标题内容标题内容标题内容标题内容标题内容标题内容标题内容标题内容标题内容标题内容标题内容
+            {{ latestDraft?.title || '<<待定标题>>' }}
           </div>
-          <div class="continue-draft-btn">继续编辑</div>
+          <div class="continue-draft-btn" @click="continueWrtieDraft">继续编辑</div>
           <div class="more-draft-btn">更多草稿</div>
           <img
+            @click="closeDraftBoxBtnHandler"
             class="close-draft-box-icon"
             src="@/assets/icon/closeBt.png"
             alt=""
           />
         </div>
-        <div class="textarea-div">
+        <div class="textarea-div" ref="titleRef">
           <textarea
             v-model="title"
             maxlength="100"
@@ -36,7 +40,8 @@
           </div>
         </div>
         <Editor
-          style="min-height: 600px; overflow-y: hidden"
+          ref="contentRef"
+          style="min-height: 600px; "
           v-model="html"
           :defaultConfig="editorConfig"
           :mode="mode"
@@ -45,11 +50,67 @@
         />
       </div>
 
+      <!-- 表单 文章的一些属性 -->
       <div class="form">
-        <div class="form-item flex-align">
+        <!-- 所属类别 -->
+        <div class="form-item flex" ref="categoryRef">
+          <div class="flex-align form-title-height">
+            <span class="form-title">所属类别</span>
+            <span class="key-point">*</span>
+            <img class="question no-key" src="@/assets/icon/question.svg" />
+          </div>
+          <div
+            class="article-category-selected-box"
+            v-if="articleCategoryName !== null && articleCategoryName !== ''"
+          >
+            {{ articleCategoryName }}
+          </div>
+          <el-popover
+            ref="categoryPopoverRef"
+            placement="bottom"
+            trigger="click"
+            width="560"
+            @show="openCategoryPopover"
+          >
+            <div class="category-box">
+              <div class="category-top-box">文章分类</div>
+              <div class="category-middle-box">
+                <div class="category-type">首字母分类</div>
+                <div
+                  class="category-select"
+                  :class="{
+                    'category-selected': activeArcleCategoryIndex === index,
+                  }"
+                  v-for="(item, index) in letterList"
+                  :key="index"
+                  @click="categoryType(item, index)"
+                >
+                  {{ item }}
+                </div>
+              </div>
+              <div class="divider-line"></div>
+              <div class="category-bottom-box">
+                <div
+                  class="category-name"
+                  @click="selectCategory(item)"
+                  v-for="(item, index) in showArticleCategoryList"
+                  :key="index"
+                >
+                  {{ item.name }}
+                </div>
+              </div>
+            </div>
+            <div class="tag-div" slot="reference">
+              <img src="@/assets/icon/add.svg" alt="" />
+              <span>选择文章类别</span>
+            </div>
+          </el-popover>
+        </div>
+        <!-- 添加文章标签 -->
+        <div class="form-item flex-align" ref="tagNames">
           <span class="form-title">文章标签</span>
           <span class="key-point">*</span>
-          <img class="question" src="@/assets/icon/question.svg" />
+          <img class="question no-key" src="@/assets/icon/question.svg" />
           <div
             class="choosed-sub-tag-list"
             v-for="(item, index) in choosedSubTagList"
@@ -61,7 +122,13 @@
               @click="deleteSubTag(item)"
             />
           </div>
-          <el-popover placement="bottom" trigger="click" width="560">
+          <el-popover
+            ref="tagPopover"
+            placement="bottom"
+            trigger="click"
+            width="560"
+            @show="tagPopoverShow"
+          >
             <div class="tag-popover">
               <div class="tag-popover-tile">
                 <span>标签</span>
@@ -74,6 +141,7 @@
                   placeholder="请输入文字搜索,Enter键入可添加自定义标签"
                   :trigger-on-focus="false"
                   @select="handleSelect"
+                  @keyup.enter.native="handleEnter"
                 ></el-autocomplete>
               </div>
               <div class="tag-container">
@@ -98,7 +166,7 @@
                           (sub) => sub.id === item.id
                         ),
                       }"
-                      v-for="(item, index) in tagList[activeTagIndex].subTag"
+                      v-for="(item, index) in (tagList[activeTagIndex] && tagList[activeTagIndex].articleTagList) || []" 
                       :key="index"
                       @click="chooseSubTag(item)"
                     >
@@ -115,6 +183,7 @@
             </div>
           </el-popover>
         </div>
+        <!-- 添加封面 -->
         <div class="form-item flex">
           <div class="flex-align form-title-height">
             <span class="form-title">添加封面</span>
@@ -206,7 +275,7 @@
             <div class="all-img">
               <div
                 class="one-img"
-                v-for="(item, index) in previewImgList"
+                v-for="(item, index) in showImgList"
                 :key="index"
               >
                 <el-popover width="550px" trigger="hover" placement="bottom">
@@ -227,6 +296,7 @@
             </div>
           </div>
         </div>
+        <!-- 文章摘要 -->
         <div class="form-item flex">
           <div class="flex-align form-title-height">
             <span class="form-title">文章摘要</span>
@@ -248,33 +318,128 @@
             </div>
           </div>
         </div>
+        <!-- 分类专栏 -->
         <div class="form-item">
-          <div class="flex-align">
+          <div class="flex-align flex-wrap">
             <span class="form-title">分类专栏</span>
             <img class="question no-key" src="@/assets/icon/question.svg" />
-            <div class="tag-div">
-              <img src="@/assets/icon/add.svg" alt="" />
-              <span>新建分类专栏</span>
+            <div
+              class="column-choosed-box"
+              v-for="(item, index) in choosedColumnList"
+              :key="index"
+            >
+              <div class="column-choosed-name">{{ item.name }}</div>
+              <div class="close-column-box-btn" @click="deleteColumn(item)">
+                <img
+                  class="column-btn-hover"
+                  src="@/assets/icon/close_btn_FFF.svg"
+                  alt=""
+                />
+                <img
+                  class="column-btn-base"
+                  src="@/assets/icon/close_61A0DA.svg"
+                  alt=""
+                />
+              </div>
             </div>
+            <!-- 添加分类专栏 -->
+            <div class="add-column-box" v-if="isAddingColumnName">
+              <input
+                type="text"
+                maxlength="50"
+                v-model="newColunnName"
+                ref="columnInputRef"
+                @input="autoResizeColumnInput"
+                @blur="ColumnInputFinish"
+              />
+              <div class="close-column-box-btn">
+                <img
+                  class="column-btn-hover"
+                  src="@/assets/icon/close_btn_FFF.svg"
+                  alt=""
+                />
+                <img
+                  class="column-btn-base"
+                  src="@/assets/icon/close_61A0DA.svg"
+                  alt=""
+                />
+              </div>
+            </div>
+            <el-popover
+              trigger="click"
+              ref="columnPopover"
+              placement="bottom"
+              width="650"
+            >
+              <div>
+                <div class="column-popover-top">
+                  <div class="column-popover-top-left">最多选择3个分类专栏</div>
+                  <div class="column-popover-top-right">
+                    <img src="@/assets/icon/closeBt.png" />
+                  </div>
+                </div>
+                <div class="vetical-divider"></div>
+                <div class="column-box">
+                  <div
+                    class="one-column-div"
+                    v-for="(item, index) in columnList"
+                    :key="index"
+                    @click="chooseColumnHandler(item)"
+                  >
+                    <div class="column-choose-btns">
+                      <div
+                        class="unchoosed-column-btn"
+                        v-if="!item.isSelected"
+                      ></div>
+                      <div class="choosed-column-btn" v-if="item.isSelected">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          height="24px"
+                          viewBox="0 -960 960 960"
+                          width="24px"
+                          fill="#fff"
+                        >
+                          <path
+                            d="M400-304 240-464l56-56 104 104 264-264 56 56-320 320Z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                    <div class="column-name">{{ item.name }}</div>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="tag-div"
+                @click="addColumnHandler"
+                v-show="choosedColumnList.length < 3"
+                slot="reference"
+              >
+                <img src="@/assets/icon/add.svg" alt="" />
+                <span>新建分类专栏</span>
+              </div>
+            </el-popover>
           </div>
         </div>
+        <!-- 文章类型 -->
         <div class="form-item">
           <div class="flex-align">
             <span class="form-title">文章类型</span>
             <img class="question no-key" src="@/assets/icon/question.svg" />
-            <el-radio v-model="type" label="1">原创</el-radio>
-            <el-radio v-model="type" label="2">转载</el-radio>
-            <el-radio v-model="type" label="3">翻译</el-radio>
+            <el-radio v-model="type" label="0">原创</el-radio>
+            <el-radio v-model="type" label="1">转载</el-radio>
+            <el-radio v-model="type" label="2">翻译</el-radio>
           </div>
         </div>
+        <!-- 可见范围 -->
         <div class="form-item">
           <div class="flex-align">
             <span class="form-title">可见范围</span>
             <img class="question no-key" src="@/assets/icon/question.svg" />
-            <el-radio v-model="visibleRange" label="1">全部可见</el-radio>
-            <el-radio v-model="visibleRange" label="2">仅我可见</el-radio>
-            <el-radio v-model="visibleRange" label="3">粉丝可见</el-radio>
-            <el-radio v-model="visibleRange" label="4">VIP可见</el-radio>
+            <el-radio v-model="visibleRange" label="0">全部可见</el-radio>
+            <el-radio v-model="visibleRange" label="1">仅我可见</el-radio>
+            <el-radio v-model="visibleRange" label="2">粉丝可见</el-radio>
+            <el-radio v-model="visibleRange" label="3">VIP可见</el-radio>
           </div>
         </div>
       </div>
@@ -291,17 +456,58 @@
           </div>
         </div>
         <div class="flex-align" style="margin-left: 450px">
-          <div class="flex-align draft-btn">
+          <div class="flex-align draft-btn" @click="saveDraftHandler" v-show="isShowSaveDraftBtn">
             <span>保存草稿</span>
             <img src="@/assets/icon/arrow_down_1A1A1A.svg" />
           </div>
-          <div class="scheduled-btn flex-align">
+          <div
+            class="scheduled-btn flex-align"
+            @click="openScheduledDialog"
+            v-show="isShowScheduledBtn"
+          >
             <span>定时发布</span>
             <i class="el-icon-arrow-right"></i>
           </div>
-          <div class="publish-btn flex-align">
+          <div class="publish-btn flex-align" @click="publishArticleHandler">
             <span>发布博客</span>
           </div>
+        </div>
+      </div>
+      <div class="scheduled-show-box" :class="{ active: isShowScheduledDialog }">
+        <div class="scheduled-show-top">
+          <div>定时发布</div>
+          <img @click="closeScheduledDialog" src="@/assets/icon/closeBt.png" >
+        </div>
+        <div class="scheduled-show-body">
+          <div class="scheduled-tips">请选择当前时间后4 小时 至 7天 进行定时发布</div>
+          <div class="flex" style="margin-top: 16px;">
+            <el-date-picker
+              v-model="articlePushlishDate"
+              style="width: 155px;"
+              size="small"
+              type="date"
+              value-format="yyyy-MM-dd"
+              placeholder="选择日期"
+              :picker-options="datePickerOptions"
+              @change="handleDateChange">
+            </el-date-picker>
+            <el-time-select
+              v-model="articlePushlishTime"
+              style="width: 155px;margin-left: 10px"
+              size="small"
+              width="100"
+              :disabled="articlePushlishDate===null"
+              :picker-options="timePickerOptions"
+              placeholder="选择时间"
+              >
+            </el-time-select>
+
+          </div>
+          <div class="scheduled-time-tips" v-show="articlePushlishDate!==null && articlePushlishTime!==null">本文将于北京时间 <span>{{ articlePushlishDate }} {{ articlePushlishTime }}</span> 发布</div>
+        </div>
+        <div class="scheduled-show-bottom">
+          <div class="scheduled-cancel-btn" @click="closeScheduledDialog"><span>取&nbsp;消</span></div>
+          <div class="scheduled-publish-btn" @click="scheduledPublishHandler"><span>定时发布</span></div>
         </div>
       </div>
     </div>
@@ -318,7 +524,19 @@ import {
   uploadImgByUrl,
   deleteFiles,
 } from "@/api/oss.js";
+import { getAllArticleCategory } from "@/api/articleCategory.js";
+import { getAllUserColumnsByUsername } from "@/api/userColumn.js";
+import { getAllArticleTag, getArticleTagByES } from "@/api/articleTag.js";
+import {
+  addDraftArticle,
+  updateDraftArticle,
+  getArticleById,
+  publishArticle,
+  getAllDraftByUsername,
+  scheduledReleaseArticle
+} from "@/api/article.js";
 import { Message } from "element-ui";
+import Pinyin from "tiny-pinyin";
 
 export default Vue.extend({
   name: "EditorComponent",
@@ -382,6 +600,8 @@ export default Vue.extend({
       },
       editorConfig: {
         placeholder: "请输入内容...",
+        autoFocus: false,
+        scroll: false,
         editorProps: {
           attributes: {
             style: "min-height: 600px;",
@@ -400,10 +620,6 @@ export default Vue.extend({
                 const res = await uploadArticleImg(formData);
                 if (res.code === 200) {
                   const alt = "";
-                  const img = {
-                    url: res.data
-                  };
-                  this.previewImgList.push(img);
                   insertFn(res.data, alt, res.data);
                 }
               } catch (err) {
@@ -414,7 +630,7 @@ export default Vue.extend({
           insertImage: {
             // 自定义插入逻辑
             onInsertedImage(imageNode) {
-              console.log("插入的图片节点：", imageNode);
+              imageNode;
             },
             checkImage(src) {
               if (!src) {
@@ -427,8 +643,9 @@ export default Vue.extend({
               return true;
             },
             parseImageSrc: async (src) => {
-              console.log("src===" + src);
-              if ( src.startsWith("https://cmc-blog.oss-cn-hangzhou.aliyuncs.com")) {
+              if (
+                src.startsWith("https://cmc-blog.oss-cn-hangzhou.aliyuncs.com")
+              ) {
                 return src;
               }
               if (src.indexOf("http") !== 0) {
@@ -436,17 +653,12 @@ export default Vue.extend({
               }
               try {
                 const imageDto = {
-                  name: 'sbzd',
-                  url: src
-                }
+                  name: "sbzd",
+                  url: src,
+                };
                 const res = await uploadImgByUrl(imageDto);
 
                 if (res.code === 200) {
-                  //赋值给previewImgList 
-                  const img = {
-                    url: res.data
-                  };
-                  this.previewImgList.push(img);
                   return res.data;
                 } else {
                   Message.error("上传失败!");
@@ -469,232 +681,157 @@ export default Vue.extend({
       noLeftMostICON: require("@/assets/icon/left_202020.svg"),
       isRightMostIcon: require("@/assets/icon/right_A4A4A4.svg"),
       noRightMostICON: require("@/assets/icon/right_202020.svg"),
-      imgList: [
-        {
-          name: "123",
-          url: "https://img.17sucai.com/upload/534358/2016-06-13/ca269bfed13507fa8928f57bbff720c7.jpg?x-oss-process=style/lessen",
-        },
-        {
-          name: "222",
-          url: "https://pic.5tu.cn/uploads/allimg/2410/pic_5tu_big_6672913_670a23992dce1-thumb-650.jpg",
-        },
-        {
-          name: "333",
-          url: "https://pic.mksucai.com/00/39/79/309846d75026bef2.webp",
-        },
-        {
-          name: "444",
-          url: "https://imgs.699pic.com/images/500/465/562.jpg!list1x.v2",
-        },
-        {
-          name: "555",
-          url: "https://www.news.cn/photo/20250713/c6bc304be7174d67b02cafda133e9087/20250713c6bc304be7174d67b02cafda133e9087_20250713add9838394a14a3ea5900fd812d4227d.jpg",
-        },
-      ],
+      imgList: [],
       currentPage: 1,
       itemsPerPage: 4,
       summary: "",
-      type: "1",
-      visibleRange: "1",
+      type: "0",
+      visibleRange: "0",
       restaurants: [],
       state1: "",
-      tagList: [
-        {
-          id: 1,
-          name: "主机游戏",
-          subTag: [
-            { id: 2, name: "PlayStation" },
-            { id: 3, name: "Xbox" },
-            { id: 4, name: "任天堂Switch" },
-            { id: 5, name: "掌机" },
-            { id: 6, name: "独占游戏" },
-            { id: 7, name: "跨平台游戏" },
-            { id: 8, name: "VR游戏" },
-            { id: 9, name: "体感游戏" },
-          ],
-        },
-        {
-          id: 10,
-          name: "PC游戏",
-          subTag: [
-            { id: 11, name: "Steam" },
-            { id: 12, name: "Epic" },
-            { id: 13, name: "战网" },
-            { id: 14, name: "Origin" },
-            { id: 15, name: "独立游戏" },
-            { id: 16, name: "大型网游" },
-            { id: 17, name: "Mod社区" },
-          ],
-        },
-        {
-          id: 18,
-          name: "手机游戏",
-          subTag: [
-            { id: 19, name: "iOS游戏" },
-            { id: 20, name: "安卓游戏" },
-            { id: 21, name: "二次元游戏" },
-            { id: 22, name: "卡牌游戏" },
-            { id: 23, name: "塔防游戏" },
-            { id: 24, name: "放置游戏" },
-            { id: 25, name: "休闲小游戏" },
-          ],
-        },
-        {
-          id: 26,
-          name: "动作游戏",
-          subTag: [
-            { id: 27, name: "格斗" },
-            { id: 28, name: "射击" },
-            { id: 29, name: "潜行" },
-            { id: 30, name: "跑酷" },
-            { id: 31, name: "开放世界" },
-            { id: 32, name: "魂类" },
-          ],
-        },
-        {
-          id: 33,
-          name: "角色扮演",
-          subTag: [
-            { id: 34, name: "日式RPG" },
-            { id: 35, name: "美式RPG" },
-            { id: 36, name: "开放世界RPG" },
-            { id: 37, name: "策略RPG" },
-            { id: 38, name: "回合制RPG" },
-            { id: 39, name: "动作RPG" },
-          ],
-        },
-        {
-          id: 40,
-          name: "策略游戏",
-          subTag: [
-            { id: 41, name: "即时战略" },
-            { id: 42, name: "回合制" },
-            { id: 43, name: "战争模拟" },
-            { id: 44, name: "塔防" },
-            { id: 45, name: "沙盒策略" },
-          ],
-        },
-        {
-          id: 46,
-          name: "体育游戏",
-          subTag: [
-            { id: 47, name: "足球" },
-            { id: 48, name: "篮球" },
-            { id: 49, name: "赛车" },
-            { id: 50, name: "滑雪" },
-            { id: 51, name: "网球" },
-            { id: 52, name: "高尔夫" },
-          ],
-        },
-        {
-          id: 53,
-          name: "模拟游戏",
-          subTag: [
-            { id: 54, name: "模拟经营" },
-            { id: 55, name: "模拟人生" },
-            { id: 56, name: "农场模拟" },
-            { id: 57, name: "建造模拟" },
-            { id: 58, name: "飞行模拟" },
-            { id: 59, name: "驾驶模拟" },
-          ],
-        },
-        {
-          id: 60,
-          name: "射击游戏",
-          subTag: [
-            { id: 61, name: "第一人称射击" },
-            { id: 62, name: "第三人称射击" },
-            { id: 63, name: "战术射击" },
-            { id: 64, name: "吃鸡游戏" },
-            { id: 65, name: "僵尸射击" },
-            { id: 66, name: "科幻射击" },
-          ],
-        },
-        {
-          id: 67,
-          name: "冒险游戏",
-          subTag: [
-            { id: 68, name: "解谜冒险" },
-            { id: 69, name: "剧情向冒险" },
-            { id: 70, name: "恐怖冒险" },
-            { id: 71, name: "像素冒险" },
-            { id: 72, name: "探索类" },
-          ],
-        },
-        {
-          id: 73,
-          name: "音乐游戏",
-          subTag: [
-            { id: 74, name: "节奏类" },
-            { id: 75, name: "钢琴类" },
-            { id: 76, name: "吉他类" },
-            { id: 77, name: "舞蹈类" },
-            { id: 78, name: "打击乐类" },
-          ],
-        },
-        {
-          id: 79,
-          name: "格斗游戏",
-          subTag: [
-            { id: 80, name: "街机格斗" },
-            { id: 81, name: "3D格斗" },
-            { id: 82, name: "竞技场格斗" },
-            { id: 83, name: "格斗大乱斗" },
-          ],
-        },
-        {
-          id: 84,
-          name: "恐怖游戏",
-          subTag: [
-            { id: 85, name: "生存恐怖" },
-            { id: 86, name: "心理恐怖" },
-            { id: 87, name: "解谜恐怖" },
-            { id: 88, name: "多人恐怖" },
-            { id: 89, name: "像素恐怖" },
-          ],
-        },
-        {
-          id: 90,
-          name: "沙盒游戏",
-          subTag: [
-            { id: 91, name: "Minecraft" },
-            { id: 92, name: "Roblox" },
-            { id: 93, name: "开放建造" },
-            { id: 94, name: "模组创作" },
-            { id: 95, name: "探索沙盒" },
-          ],
-        },
-        {
-          id: 96,
-          name: "电子竞技",
-          subTag: [
-            { id: 97, name: "MOBA" },
-            { id: 98, name: "FPS竞技" },
-            { id: 99, name: "卡牌竞技" },
-            { id: 100, name: "格斗竞技" },
-            { id: 101, name: "即时战略竞技" },
-          ],
-        },
-      ],
+      tagList: [],
       activeTagIndex: 0,
       choosedSubTagList: [
         //被选择后的子标签
       ],
       tocList: [],
       articleId: null,
+      draftId: null,
+      isShowDraft: true,
       showCropper: false,
       croppedPreview: "",
       previewUrl: "",
       coverImgUrl: "",
-      previewImgList:[]
+      previewImgList: [],
+      letterList: [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G",
+        "H",
+        "I",
+        "J",
+        "K",
+        "L",
+        "M",
+        "N",
+        "O",
+        "P",
+        "Q",
+        "R",
+        "S",
+        "T",
+        "U",
+        "V",
+        "W",
+        "X",
+        "Y",
+        "Z",
+        "#",
+      ],
+      articleCategoryList: [],
+      showArticleCategoryList: [],
+      activeArcleCategoryIndex: null,
+      articleCategoryName: "",
+      judgePopoverList: [],
+      newColunnName: "",
+      isAddingColumnName: false,
+      choosedColumnList: [],
+      columnList: [],
+      isSavingDraftFlag:false,
+      isPublishArticleFlag:false,
+      latestDraft:null,
+      isShowScheduledDialog:false,
+      articlePushlishDate:null,
+      articlePushlishTime:null,
+      timePickerOptions: {
+        start: '00:00',
+        step: '00:15',
+        end: '23:45'
+      },
+      datePickerOptions: {
+        disabledDate(time) {
+          const today = new Date();
+          const sevenDaysLater = new Date();
+          sevenDaysLater.setDate(today.getDate() + 7);
+          // 禁用今天之前的日期 或 超出7天的日期
+          return time.getTime() < today.setHours(0, 0, 0, 0) ||
+                 time.getTime() > sevenDaysLater.setHours(23, 59, 59, 999);
+        }
+      },
+      isShowSaveDraftBtn:true,
+      isShowScheduledBtn:true,
     };
   },
   created() {
     this.articleId = this.$route.params.articleId;
+    if (this.articleId) {
+      //获取文章内容
+      getArticleById(this.articleId).then((res) => {
+        // 判断是是否作者是否是同一人
+        if(res.code !== 200){
+          this.$router.push("/");
+          return;
+        }
+        if (res.data.createBy === this.$store.state.user.username) {
+          // 填充数据
+          this.title = res.data.title;
+          this.html = res.data.content;
+          this.articleCategoryName = res.data.category;
+          this.choosedSubTagList = JSON.parse(res.data.tags);
+          this.coverImgUrl = res.data.coverImg;
+          this.summary = res.data.summary;
+          this.choosedColumnList = JSON.parse(res.data.columns);
+          this.type = res.data.type;
+          this.visibleRange = res.data.visibleRange;
+
+          //查看文章状态 如果是 已经发布过的 则没有保存草稿和 定时发布按钮
+          if(res.data.status==="0"){
+            this.isShowSaveDraftBtn = false;
+            this.isShowScheduledBtn = false;
+          }
+
+        } else {
+          // 跳转到
+          this.$router.push("/");
+          return;
+        }
+      });
+    }else{
+      // 没有 articleId  新建页面
+      // 查询 用户最近的草稿
+      getAllDraftByUsername(this.$store.state.user.username).then((res)=> {
+        if(res.data[0]){
+          this.latestDraft = res.data[0];
+          console.log(this.latestDraft)
+        }
+      })
+    }
+    this.initData();
+
+    eventBus.on("closeScheduledDialog", () => {
+      this.isShowScheduledDialog = false;
+    });
+
   },
   mounted() {
-    this.autoResize();
+    this.$nextTick(() => {
+      this.autoResize();
+      this.autoResizeColumnInput();
+
+      //预加载图片
+      const preloadImg = new Image();
+      preloadImg.src = require("@/assets/icon/add-hover.svg");
+
+    })
+    
     this.restaurants = this.loadAll();
+    
+    
+    
   },
   computed: {
     // 计算总页数
@@ -704,10 +841,66 @@ export default Vue.extend({
     // 计算当前页显示的图片
     showImgList() {
       const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-      return this.imgList.slice(startIndex, startIndex + this.itemsPerPage);
+      return this.showPreviewImgList.slice(
+        startIndex,
+        startIndex + this.itemsPerPage
+      );
+    },
+    // 展示的图片
+    showPreviewImgList() {
+      const seen = new Set();
+      return this.previewImgList.filter((item) => {
+        if (seen.has(item.url)) {
+          return false;
+        }
+        seen.add(item.url);
+        return true;
+      });
     },
   },
   methods: {
+    //重置数据
+    initData() {
+      //获取文章类型
+      getAllArticleCategory().then((res) => {
+        this.articleCategoryList = res.data;
+        this.articleCategoryList.forEach((item) => {
+          if (item.name && item.name.length > 0) {
+            const firstChar = item.name[0];
+
+            if (/^[a-zA-Z]$/.test(firstChar)) {
+              // 英文字母直接大写
+              item.letter = firstChar.toUpperCase();
+            } else if (
+              Pinyin.isSupported() &&
+              Pinyin.convertToPinyin(firstChar).length > 0
+            ) {
+              // 中文转拼音首字母
+              const py = Pinyin.convertToPinyin(firstChar);
+              item.letter = py[0].toUpperCase();
+            } else {
+              item.letter = "#";
+            }
+          } else {
+            item.letter = "#";
+          }
+        });
+        this.showArticleCategoryList = this.articleCategoryList;
+      });
+
+      //获取文章标签
+      getAllArticleTag().then((res) => {
+        this.tagList = res.data;
+      });
+
+      //获取用户的专栏
+      const username = this.$store.state.user.username;
+      if (username !== null && username !== "") {
+        getAllUserColumnsByUsername(username).then((res) => {
+          this.columnList = res.data;
+        });
+      }
+    },
     onCreated(editor) {
       this.editor = Object.seal(editor); // 一定要用 Object.seal() ，否则会报错
     },
@@ -795,6 +988,7 @@ export default Vue.extend({
         this.croppedPreview = "";
       };
     },
+    //打开Cropper
     openCropper() {
       this.showCropper = true;
       //打开遮罩层
@@ -887,12 +1081,16 @@ export default Vue.extend({
       }
     },
     querySearch(queryString, cb) {
-      var restaurants = this.restaurants;
-      var results = queryString
-        ? restaurants.filter(this.createFilter(queryString))
-        : restaurants;
-      // 调用 callback 返回建议列表的数据
-      cb(results);
+      getArticleTagByES(queryString).then((res) => {
+        const newData = res.data.map((item) => {
+          return {
+            ...item,
+            value: item.name,
+          };
+        });
+        this.judgePopoverList = newData;
+        cb(newData);
+      });
     },
     createFilter(queryString) {
       return (restaurant) => {
@@ -909,120 +1107,32 @@ export default Vue.extend({
           value: "Hot honey 首尔炸鸡（仙霞路）",
           address: "上海市长宁区淞虹路661号",
         },
-        {
-          value: "新旺角茶餐厅",
-          address: "上海市普陀区真北路988号创邑金沙谷6号楼113",
-        },
-        { value: "泷千家(天山西路店)", address: "天山西路438号" },
-        {
-          value: "胖仙女纸杯蛋糕（上海凌空店）",
-          address: "上海市长宁区金钟路968号1幢18号楼一层商铺18-101",
-        },
-        { value: "贡茶", address: "上海市长宁区金钟路633号" },
-        {
-          value: "豪大大香鸡排超级奶爸",
-          address: "上海市嘉定区曹安公路曹安路1685号",
-        },
-        {
-          value: "茶芝兰（奶茶，手抓饼）",
-          address: "上海市普陀区同普路1435号",
-        },
-        { value: "十二泷町", address: "上海市北翟路1444弄81号B幢-107" },
-        { value: "星移浓缩咖啡", address: "上海市嘉定区新郁路817号" },
-        { value: "阿姨奶茶/豪大大", address: "嘉定区曹安路1611号" },
-        { value: "新麦甜四季甜品炸鸡", address: "嘉定区曹安公路2383弄55号" },
-        {
-          value: "Monica摩托主题咖啡店",
-          address: "嘉定区江桥镇曹安公路2409号1F，2383弄62号1F",
-        },
-        {
-          value: "浮生若茶（凌空soho店）",
-          address: "上海长宁区金钟路968号9号楼地下一层",
-        },
-        { value: "NONO JUICE  鲜榨果汁", address: "上海市长宁区天山西路119号" },
-        { value: "CoCo都可(北新泾店）", address: "上海市长宁区仙霞西路" },
-        {
-          value: "快乐柠檬（神州智慧店）",
-          address: "上海市长宁区天山西路567号1层R117号店铺",
-        },
-        {
-          value: "Merci Paul cafe",
-          address: "上海市普陀区光复西路丹巴路28弄6号楼819",
-        },
-        {
-          value: "猫山王（西郊百联店）",
-          address: "上海市长宁区仙霞西路88号第一层G05-F01-1-306",
-        },
-        { value: "枪会山", address: "上海市普陀区棕榈路" },
-        { value: "纵食", address: "元丰天山花园(东门) 双流路267号" },
-        { value: "钱记", address: "上海市长宁区天山西路" },
-        { value: "壹杯加", address: "上海市长宁区通协路" },
-        {
-          value: "唦哇嘀咖",
-          address: "上海市长宁区新泾镇金钟路999号2幢（B幢）第01层第1-02A单元",
-        },
-        { value: "爱茜茜里(西郊百联)", address: "长宁区仙霞西路88号1305室" },
-        {
-          value: "爱茜茜里(近铁广场)",
-          address:
-            "上海市普陀区真北路818号近铁城市广场北区地下二楼N-B2-O2-C商铺",
-        },
-        {
-          value: "鲜果榨汁（金沙江路和美广店）",
-          address: "普陀区金沙江路2239号金沙和美广场B1-10-6",
-        },
-        {
-          value: "开心丽果（缤谷店）",
-          address: "上海市长宁区威宁路天山路341号",
-        },
-        { value: "超级鸡车（丰庄路店）", address: "上海市嘉定区丰庄路240号" },
-        { value: "妙生活果园（北新泾店）", address: "长宁区新渔路144号" },
-        { value: "香宜度麻辣香锅", address: "长宁区淞虹路148号" },
-        {
-          value: "凡仔汉堡（老真北路店）",
-          address: "上海市普陀区老真北路160号",
-        },
-        { value: "港式小铺", address: "上海市长宁区金钟路968号15楼15-105室" },
-        { value: "蜀香源麻辣香锅（剑河路店）", address: "剑河路443-1" },
-        { value: "北京饺子馆", address: "长宁区北新泾街道天山西路490-1号" },
-        {
-          value: "饭典*新简餐（凌空SOHO店）",
-          address: "上海市长宁区金钟路968号9号楼地下一层9-83室",
-        },
-        {
-          value: "焦耳·川式快餐（金钟路店）",
-          address: "上海市金钟路633号地下一层甲部",
-        },
-        { value: "动力鸡车", address: "长宁区仙霞西路299弄3号101B" },
-        { value: "浏阳蒸菜", address: "天山西路430号" },
-        { value: "四海游龙（天山西路店）", address: "上海市长宁区天山西路" },
-        {
-          value: "樱花食堂（凌空店）",
-          address: "上海市长宁区金钟路968号15楼15-105室",
-        },
-        { value: "壹分米客家传统调制米粉(天山店)", address: "天山西路428号" },
-        {
-          value: "福荣祥烧腊（平溪路店）",
-          address: "上海市长宁区协和路福泉路255弄57-73号",
-        },
-        {
-          value: "速记黄焖鸡米饭",
-          address: "上海市长宁区北新泾街道金钟路180号1层01号摊位",
-        },
-        { value: "红辣椒麻辣烫", address: "上海市长宁区天山西路492号" },
-        {
-          value: "(小杨生煎)西郊百联餐厅",
-          address: "长宁区仙霞西路88号百联2楼",
-        },
-        { value: "阳阳麻辣烫", address: "天山西路389号" },
-        {
-          value: "南拳妈妈龙虾盖浇饭",
-          address: "普陀区金沙江路1699号鑫乐惠美食广场A13",
-        },
       ];
     },
     handleSelect(item) {
-      console.log(item);
+      this.choosedSubTagList.push(item);
+      this.$refs.tagPopover.doClose();
+    },
+    handleEnter() {
+      //判断当前的数据 在数组中是否拥有  有就不添加  没有就添加
+      const exists = this.choosedSubTagList.some(
+        (item) => item.name === this.state1
+      );
+      if (exists) {
+        return;
+      }
+      //没有直接返回 则  添加tag的名称去数据库中
+
+      //就是 回车 不管数据库中有没有 后端去判断有没有这个数据 如果没有 直接添加到后端
+      const newData = { name: this.state1 };
+      this.choosedSubTagList.push(newData);
+
+      //用户添加操作
+
+      this.$refs.tagPopover.doClose();
+    },
+    tagPopoverShow() {
+      this.state1 = "";
     },
     //父标签点击事件
     chooseSupTag(index) {
@@ -1045,6 +1155,421 @@ export default Vue.extend({
         this.choosedSubTagList.splice(index, 1);
       }
     },
+    // 分类标签选择后的点击时间
+    selectCategory(item) {
+      this.articleCategoryName = item.name;
+      this.$refs.categoryPopoverRef.doClose();
+    },
+
+    //分类标签点击时间 A-Z
+    categoryType(item, index) {
+      this.activeArcleCategoryIndex = index;
+      this.showArticleCategoryList = this.articleCategoryList.filter((obj) => {
+        // obj.letter 已经是大写字母或 #
+        return obj.letter === item;
+      });
+    },
+    openCategoryPopover() {
+      this.activeArcleCategoryIndex = null;
+      this.showArticleCategoryList = this.articleCategoryList;
+    },
+    //新增专栏自动宽度变化
+    autoResizeColumnInput() {
+      const el = this.$refs.columnInputRef;
+      if (!el) return;
+
+      // 创建隐藏 span 来测量文字宽度
+      const span = document.createElement("span");
+      span.style.visibility = "hidden";
+      span.style.position = "absolute";
+      span.style.whiteSpace = "pre";
+      span.style.font = getComputedStyle(el).font;
+      span.textContent = el.value || " "; // 避免空值时为0宽
+      document.body.appendChild(span);
+
+      const width = Math.min(span.offsetWidth + 10, 200); // +10内边距，最大200px
+      el.style.width = width + "px";
+      span.remove();
+    },
+    //新增 专栏点击事件
+    addColumnHandler() {
+      this.isAddingColumnName = true;
+      this.$nextTick(() => {
+        this.$refs.columnInputRef.focus();
+      });
+    },
+    //失去焦点后
+    ColumnInputFinish() {
+      this.isAddingColumnName = false;
+      if (this.newColunnName !== null && this.newColunnName !== "") {
+        const newColumn = {
+          name: this.newColunnName,
+          isNewAdd: 1,
+          createBy: this.$store.state.user.username
+        };
+
+        this.choosedColumnList.push(newColumn);
+        this.$refs.columnPopover.doClose();
+        this.newColunnName = "";
+      }
+    },
+    deleteColumn(item) {
+      const index = this.choosedColumnList.findIndex(
+        (column) => column.name === item.name
+      );
+      if (index !== -1) {
+        this.choosedColumnList.splice(index, 1);
+      }
+      //如果是从popover中的数据 同时也要修改popover中的 isSelected
+      if (item.isNewAdd === 0) {
+        const newAddIndex = this.columnList.findIndex(
+          (column) => column.id === item.id
+        );
+
+        this.columnList[newAddIndex].isSelected = false;
+      }
+    },
+    //选择专栏点击事件
+    chooseColumnHandler(item) {
+      //判断是否已经是三个了
+      if (this.choosedColumnList.length >= 3) {
+        this.$message.error("最多只能选择3个哦~");
+        return;
+      }
+      if (!item.isSelected) {
+        const newItem = {
+          ...item,
+          isNewAdd: 0,
+        };
+        this.choosedColumnList.push(newItem);
+      } else {
+        //删除掉数组中这个数据
+        const index = this.choosedColumnList.findIndex(
+          (column) => column.name === item.name
+        );
+        if (index !== -1) {
+          this.choosedColumnList.splice(index, 1);
+        }
+      }
+      item.isSelected = !item.isSelected;
+    },
+    // 提交文章表单前的验证操作
+    verifyArticleData(){
+      if(this.title=== null || this.title === ""){
+        this.$message.info({
+          message: "请输入标题~",
+          offset: 80
+        });
+        this.scrollToField("titleRef");
+        return false;
+      }
+      if(this.title.length< 5){
+        this.$message.info({
+          message: "标题长度过短~",
+          offset: 80
+        });
+        this.scrollToField("titleRef");
+        return false;
+      }
+      if(this.html=== null || this.html === ""){
+        this.$message.info({
+          message: "请输入内容~",
+          offset: 80
+        });
+        this.scrollToField("contentRef");
+        return false;
+      }
+      if(this.articleCategoryName === null || this.articleCategoryName===""){
+        this.$message.info({
+          message: "请选择分类~",
+          offset: 80
+        });
+        this.scrollToField("categoryRef");
+        return false;
+      }
+      if(this.choosedSubTagList===null || this.choosedSubTagList.length <= 0){
+        this.$message.info({
+          message: "请选择标签~",
+          offset: 80
+        });
+        this.scrollToField("tagRef");
+        return false;
+      }
+      return true;
+    },
+    scrollToField(refName) {
+      const el = this.$refs[refName];
+      if (el && el.scrollIntoView) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // 可选：自动聚焦
+        const input = el.querySelector('input, textarea');
+        if (input) input.focus();
+      }
+    },
+    // 保存草稿按钮点击事件
+    async saveDraftHandler() {
+      if(!this.verifyArticleData()){
+        return;
+      }
+      //判断是否还在处理 防止过多操作
+      if(this.isSavingDraftFlag){
+        this.$message.info({
+          message:"正在保存中,请勿过多操作~",
+          offset:80
+        })
+        return;
+      }
+      this.isSavingDraftFlag = true;
+      try {
+        //获取数据
+        const tagNames = JSON.stringify(this.choosedSubTagList);
+        const columnNames = JSON.stringify(this.choosedColumnList);
+        const article = {
+          title: this.title,
+          content: this.html,
+          category: this.articleCategoryName,
+          tags: tagNames,
+          coverImg: this.coverImgUrl,
+          summary: this.summary,
+          columns: columnNames,
+          type: this.type,
+          visibleRange: this.visibleRange,
+          createBy: this.$store.state.user.username,
+        };
+        let res;
+        if (this.articleId) {
+          article.id = this.articleId;
+          res = await updateDraftArticle(article);
+          if(res.code === 200){
+              this.$message.success({
+                message:"草稿保存成功!",
+                offset:80
+              })
+            }else{
+              this.$message.error({
+                message:"草稿保存失败,请稍后再试!",
+                offset:80
+              })
+            }
+        } else {
+          //如果没有draftId 则是添加草稿
+          if (!this.draftId) {
+            res = await addDraftArticle(article);
+            if (res.code === 200) {
+                this.draftId = res.data.id;
+                this.$message.success({
+                  message: "草稿保存成功!",
+                  offset: 80,
+                });
+              } else {
+                this.$message.error({
+                  message: "草稿保存失败,请稍后尝试!",
+                  offset: 80,
+                });
+              }
+          } else {
+            //有 draftId  修改当前草稿的内容
+            article.id = this.draftId;
+            res = await updateDraftArticle(article);
+            if (res.code === 200) {
+                this.draftId = res.data.id;
+                this.$message.success({
+                  message: "草稿保存成功!",
+                  offset: 80,
+                });
+              } else {
+                this.$message.error({
+                  message: "草稿保存失败,请稍后尝试!",
+                  offset: 80,
+                });
+              }
+          }
+        }
+      } catch (e) {
+        this.$message.error({
+          message: "操作失败!",
+          offset: 80,
+        });
+      } finally {
+        this.isSavingDraftFlag = false;
+      }
+
+    },
+    // 打开定时发布对话框
+    openScheduledDialog(){
+      console.log(this.verifyArticleData())
+      if(!this.verifyArticleData()){
+        
+        return;
+      }
+      this.isShowScheduledDialog = true;
+      eventBus.emit("openMask");
+    },
+    handleDateChange(selectedDate) {
+      const today = new Date();
+      const selected = new Date(selectedDate);
+
+      // 判断是否选中今天
+      const isToday =
+        selected.getFullYear() === today.getFullYear() &&
+        selected.getMonth() === today.getMonth() &&
+        selected.getDate() === today.getDate();
+
+      if (isToday) {
+        // 当前时间 +4小时，作为起始时间
+        const now = new Date();
+        now.setHours(now.getHours() + 4);
+        const startHours = now.getHours();
+        const startMinutes = now.getMinutes();
+
+        // 格式化时间为 "HH:mm"
+        const pad = (num) => num.toString().padStart(2, "0");
+        const startTime = `${pad(startHours)}:${pad(
+          Math.ceil(startMinutes / 15) * 15
+        )}`;
+
+        this.timePickerOptions = {
+          start: startTime,
+          step: "00:15",
+          end: "23:45"
+        };
+      } else {
+        // 非今天，允许全天选择
+        this.timePickerOptions = {
+          start: "00:00",
+          step: "00:15",
+          end: "23:45"
+        };
+      }
+
+      // 清空上一次选中的时间（防止选中的时间不在新范围内）
+      this.articlePushlishTime = null;
+    },
+    // 关闭定时发布对话框
+    closeScheduledDialog(){
+      this.isShowScheduledDialog = false;
+      eventBus.emit("closeMask");
+    },
+    // 定时发布按钮点击事件
+    scheduledPublishHandler() {
+      // 表单数据验证
+      if(!this.verifyArticleData()){
+        return;
+      }
+      // 判断时间是否填写了
+      if(!this.articlePushlishDate || !this.articlePushlishTime){
+        this.$message.info({
+          message: "请正确填写时间~",
+          offset: 80
+        })
+        return;
+      }
+      const fullDateTime = `${this.articlePushlishDate} ${this.articlePushlishTime}:00`;
+
+      const tagNames = JSON.stringify(this.choosedSubTagList);
+      const columnNames = JSON.stringify(this.choosedColumnList);
+      const article = {
+        title: this.title,
+        content: this.html,
+        category: this.articleCategoryName,
+        tags: tagNames,
+        coverImg: this.coverImgUrl,
+        summary: this.summary,
+        columns: columnNames,
+        type: this.type,
+        visibleRange: this.visibleRange,
+        createBy: this.$store.state.user.username,
+        publishTime: fullDateTime
+      };
+      scheduledReleaseArticle(article).then((res) => {
+        if(res.code === 200){
+          this.$message.success({
+            message: "已成功定时发布文章~",
+            offset: 80
+          })
+          // 关闭 dialog  和 遮罩层
+          this.closeScheduledDialog();
+          this.$router.push("/create/success");
+        }
+      })
+    },
+    // 发布文章点击事件
+    async publishArticleHandler(){
+      // 表单数据验证
+      if(!this.verifyArticleData()){
+        return;
+      }
+      //判断是否在执行中
+      if(this.isPublishArticleFlag){
+        this.$message.info({
+          message:"正在操作中,请稍后尝试~",
+          offset:80
+        })
+        return;
+      }
+      // 修改flag
+      this.isPublishArticleFlag = true;
+
+      try {
+        //获取数据
+        const tagNames = JSON.stringify(this.choosedSubTagList);
+        const columnNames = JSON.stringify(this.choosedColumnList);
+        const article = {
+          title: this.title,
+          content: this.html,
+          category: this.articleCategoryName,
+          tags: tagNames,
+          coverImg: this.coverImgUrl,
+          summary: this.summary,
+          columns: columnNames,
+          type: this.type,
+          visibleRange: this.visibleRange,
+          createBy: this.$store.state.user.username,
+        };
+        let res;
+        if(this.$route.params.articleId){
+          article.id =  this.$route.params.articleId;
+          // 发布接口
+          res = await publishArticle(article);
+          if(res.code === 200){
+            this.$message.success({
+              message:"发布成功",
+              offset:80
+            })
+            this.$router.push("/create/success");
+          }
+        }else{
+          // 发布接口
+          res = await publishArticle(article);
+          if(res.code === 200){
+            this.$message.success({
+              message:"发布成功",
+              offset:80
+            })
+            this.$router.push("/create/success");
+          }
+          
+        }
+        
+      } catch (e) {
+        this.$message.error({
+          message:"操作失败,请稍后尝试~",
+          offset:80
+        })
+      } finally{
+        this.isPublishArticleFlag = false;
+      }
+
+    },
+    // 继续编辑点击事件
+    continueWrtieDraft(){
+      const url = "/create/editor/" + this.latestDraft.id;
+      window.location.href = url;
+    },
+    // 草稿box 关闭点击事件
+    closeDraftBoxBtnHandler(){
+      this.isShowDraft = false;
+    }
   },
   watch: {
     articleId(newId) {
@@ -1053,6 +1578,36 @@ export default Vue.extend({
       } else {
         console.log("切换到新建模式");
       }
+    },
+    html(newVal) {
+      const ossPrefix = "https://cmc-blog.oss-cn-hangzhou.aliyuncs.com";
+
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(newVal, "text/html");
+      const imgs = Array.from(doc.querySelectorAll("img"));
+
+      const newList = imgs.map((img) => ({ url: img.getAttribute("src") }));
+
+      // 找出被删除的图片（老的有，新的没有）
+      const deleted = this.previewImgList.filter(
+        (oldItem) => !newList.some((newItem) => newItem.url === oldItem.url)
+      );
+
+      // 调 OSS 删除接口（加安全判断）
+      deleted.forEach((item) => {
+        if (item.url.startsWith(ossPrefix)) {
+          // 判断 item.url 在 deleted 中是否唯一
+          const count = deleted.filter((d) => d.url === item.url).length;
+          if (count === 1) {
+            deleteFiles([item.url]).then((res) => {
+              res;
+            });
+          }
+        }
+      });
+
+      // 更新 list
+      this.previewImgList = newList;
     },
   },
   beforeDestroy() {
@@ -1073,7 +1628,7 @@ export default Vue.extend({
   display: flex;
   justify-content: center;
   border-bottom: 1px solid #ccc;
-  z-index: 999;
+  z-index: 1;
 }
 .editor-div {
   width: 816px;
@@ -1467,7 +2022,7 @@ export default Vue.extend({
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 999;
+  z-index: 199;
 }
 .word-count {
   font-size: 16px;
@@ -1558,6 +2113,13 @@ export default Vue.extend({
   margin-right: 16px;
   cursor: pointer;
 }
+.continue-draft-btn:hover{
+  background: linear-gradient(145deg, #eef1f7, #ffffff);
+  border-color: #b8bcd1;
+  color: #2a2b38;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+}
 .draft-title-box {
   font-size: 16px;
   color: #222226;
@@ -1577,6 +2139,10 @@ export default Vue.extend({
   margin-right: 16px;
   cursor: pointer;
 }
+.more-draft-btn:hover {
+  background-color: #e8f1ff;
+  color: #3f6cff;            
+}
 .close-draft-box-icon {
   width: 12px;
   height: 12px;
@@ -1585,7 +2151,7 @@ export default Vue.extend({
   cursor: pointer;
 }
 .cropper-box {
-  z-index: 99999;
+  z-index: 201;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -1696,6 +2262,362 @@ export default Vue.extend({
   padding: 0 16px;
   cursor: pointer;
 }
+/* 分类popover */
+.category-box {
+  min-height: 400px;
+  width: 100%;
+}
+.category-top-box {
+  width: 100%;
+
+  text-align: center;
+  color: #222226;
+  font-size: 16px;
+}
+.category-middle-box {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 12px;
+}
+.category-type {
+  font-size: 14px;
+  color: #666666;
+  margin: 5px 12px 0 0;
+}
+.category-select {
+  font-size: 14px;
+  color: #666666;
+  margin: 5px 8px 0 0;
+  padding: 0 10px;
+  border-radius: 2px;
+  border: 1px solid #fff;
+  cursor: pointer;
+}
+.category-select:hover {
+  color: #ff6600;
+  background-color: #fff7ee;
+  border: 1px solid #b4b4b4;
+}
+.category-selected {
+  color: #ff6600;
+  background-color: #fff7ee;
+  border: 1px solid #ff6600;
+}
+.category-bottom-box {
+  margin: 6px 0 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  overflow-y: scroll;
+  max-height: 240px;
+}
+.category-name {
+  font-size: 16px;
+  color: #fff;
+  padding: 2px 10px;
+  margin: 5px 8px 0 0;
+  border-radius: 4px;
+  background-color: #84b4eb;
+  transition: background-color 0.3s ease;
+  cursor: pointer;
+}
+.category-name:hover {
+  background-color: #5fa8f0;
+}
+.divider-line {
+  width: 100%;
+  border-top: 1px solid #e8e8ed;
+  margin: 10px 0;
+}
+.article-category-selected-box {
+  font-size: 14px;
+  color: #fff;
+  background-color: #00a1d6;
+  text-align: center;
+  height: 26px;
+  line-height: 26px;
+  padding: 0 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 8px;
+}
+
+.column-popover-top {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.column-popover-top-left {
+  color: #555666;
+  font-family: "PingFang SC";
+  font-size: 14px;
+}
+.column-popover-top-right {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+}
+.column-popover-top-right:hover {
+  background-color: #f4f8fc;
+}
+.column-popover-top-right img {
+  width: 8px;
+  height: 8px;
+  display: block;
+  object-fit: cover;
+}
+.vetical-divider {
+  width: 100%;
+  border-top: 1px solid #e8e8ee;
+  margin: 12px 0;
+}
+.add-column-box {
+  display: flex;
+  align-items: center;
+  height: 26.6px;
+  background-color: #f4f8fc;
+  border: 1px solid #80b7ff;
+  border-radius: 4px;
+  padding: 0px 4px 0 8px;
+  margin-right: 8px;
+}
+.add-column-box input {
+  color: #006fff;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 12px;
+  font-family: "SF Pro Display";
+  width: 20px;
+  max-width: 200px;
+  transition: width 0.15s ease;
+}
+.add-column-box input:focus {
+  caret-color: #409eff; /* 聚焦时变成主题色 */
+}
+.close-column-box-btn {
+  position: relative;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  cursor: pointer;
+  margin-left: 4px;
+}
+.close-column-box-btn:hover {
+  background-color: #267dcc;
+}
+.close-column-box-btn img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 14px;
+  height: 14px;
+  transition: opacity 0.1s ease;
+}
+.close-column-box-btn .column-btn-hover {
+  opacity: 0;
+}
+.close-column-box-btn:hover .column-btn-hover {
+  opacity: 1;
+}
+.close-column-box-btn:hover .column-btn-base {
+  opacity: 0;
+}
+.column-choosed-box {
+  background-color: #f4f8fc;
+  border: 1px solid #80b7ff;
+  border-radius: 4px;
+  padding: 0px 4px 0 8px;
+  margin-right: 8px;
+  display: flex;
+  align-items: center;
+  height: 26.6px;
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+.column-choosed-name {
+  color: #006fff;
+  font-size: 12px;
+  font-family: "SF Pro Display";
+  line-height: 26.6px;
+}
+.flex-wrap {
+  flex-wrap: wrap;
+}
+.column-box {
+  display: flex;
+
+  flex-wrap: wrap;
+}
+.one-column-div {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  margin-right: 16px;
+}
+.column-choose-btns {
+  position: relative;
+}
+.unchoosed-column-btn::before {
+  content: "";
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 1px solid #e8e8ed;
+  border-radius: 4px;
+}
+.unchoosed-column-btn {
+  width: 14px;
+  height: 14px;
+}
+.choosed-column-btn {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  background-color: #3399ea;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.choosed-column-btn svg {
+  width: 14px;
+  height: 14px;
+  object-fit: cover;
+  display: block;
+}
+.column-name {
+  margin-left: 6px;
+  color: #606266;
+  font-size: 14px;
+  font-family: "PingFang SC";
+}
+.scheduled-show-box{
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-60%);
+
+  width: 366px;
+  height: 223px;
+  padding: 24px;
+  background-color: #fff;
+  border-radius: 16px;
+
+  opacity: 0;
+  pointer-events: none; /* 默认不可点 */
+  transition: all 0.35s ease;
+
+  z-index:  201;
+
+}
+
+.scheduled-show-box.active {
+  transform: translate(-50%, -70%);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.scheduled-show-top{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.scheduled-show-top div{
+  font-size: 18px;
+  color: #303133;
+  font-family: "PingFang SC";
+}
+.scheduled-show-top img{
+  width: 16px;
+  height: 16px;
+  object-fit: cover;
+  display: block;
+  cursor: pointer;
+}
+.scheduled-show-body{
+  display: flex;
+  flex-direction: column;
+  margin-top: 12px;
+}
+.scheduled-tips{
+  font-size: 14px;
+  color: #222226;
+  font-family: "PingFang SC";
+}
+.scheduled-time-tips{
+  font-size: 14px;
+  color: #999AAA;
+  font-family: "PingFang SC";
+  margin-top: 12px;
+}
+.scheduled-time-tips span{
+  font-size: 14px;
+  color: #222226;
+  font-family: "PingFang SC";
+}
+.scheduled-show-bottom{
+  display: flex;
+  align-items: center;
+  justify-content: right;
+  margin: 20px 0;
+
+}
+.scheduled-cancel-btn{
+  padding: 0 20px;
+  height: 32px;
+  border: 1px solid #dcdfe6;
+  border-radius: 8px;
+
+  display: flex;
+  align-items: center;
+
+  transition: all 0.35s ease;
+
+  cursor: pointer;
+}
+.scheduled-cancel-btn:hover{
+  border: 1px solid #555666;
+
+}
+.scheduled-cancel-btn span{
+  font-size: 14px;
+  color: #666666;
+  font-family: "Arial";
+}
+.scheduled-publish-btn{
+  padding: 0 20px;
+  height: 32px;
+  border: 1px solid #dcdfe6;
+  border-radius: 8px;
+
+  background-color: #fc5531;
+
+  display: flex;
+  align-items: center;
+
+  transition: all 0.35s ease;
+
+  cursor: pointer;
+  margin-left: 8px;
+}
+.scheduled-publish-btn:hover{
+  background-color: #fc1944;
+}
+.scheduled-publish-btn span{
+  font-size: 14px;
+  color: #fff;
+  font-family: "Arial";
+  font-weight: 500;
+}
+
 </style>
 <style>
 .w-e-toolbar {

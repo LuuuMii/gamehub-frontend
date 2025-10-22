@@ -10,8 +10,8 @@
             >
           </li>
           <li><router-link to="/about">游戏</router-link></li>
-          <li><router-link to="/post/123">论坛</router-link></li>
-          <li><router-link to="/userspace/123">关于</router-link></li>
+          <li><router-link to="/post/24">论坛</router-link></li>
+          <li><router-link to="/userspace/1">关于</router-link></li>
           <li><router-link to="/create/editor">编辑</router-link></li>
         </ul>
       </div>
@@ -45,17 +45,18 @@
             </template>
           </a>
         </li>
-        <li v-if="userId == null">
+        <li v-if="!isLogin">
           <div class="not-logged" @click="openLogin">登录</div>
         </li>
         <li
-          v-if="userAvatar !== null"
+          v-if="isLogin"
           @mouseenter="mouseenterHandlerForUserInfo"
           @mouseleave="mouseleaveHandlerForUserInfo"
         >
           <img class="login-avatar" :src="userAvatar" />
         </li>
         <!-- 展开个人信息栏目 -->
+        
         <div
           v-if="isShowUserInfo"
           class="userinfo-popover"
@@ -183,7 +184,13 @@ export default {
       userAvatar: null,
       isShowUserInfo: false,
       showUserInfoTimer: null,
+      isLogin:false,
     };
+  },
+  created(){
+    if(this.$store.state.token){
+      this.isLogin = true;
+    }
   },
   methods: {
     queryBlur() {
@@ -361,6 +368,8 @@ export default {
     },
     logout() {
       localStorage.removeItem("token");
+      localStorage.removeItem("userId");
+      localStorage.removeItem("username");
       window.location.reload();
     },
     headerPushRouter(url) {
@@ -521,7 +530,7 @@ export default {
 }
 
 .userinfo-popover {
-  z-index: 9999999;
+  z-index: 201;
   position: absolute;
   top: 67px;
   width: 218px;

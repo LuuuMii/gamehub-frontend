@@ -197,12 +197,22 @@ export default {
             //获取个人信息
             getUserInfoById(res.data.uid).then((res) => {
               this.$store.commit("setUser", res.data);
+              localStorage.setItem("userId",res.data.id);
+              localStorage.setItem("username",res.data.username);
+              localStorage.setItem("avatar",res.data.avatar);
             });
 
-            this.$message.success(res.message);
+            this.$message.success({
+              message: res.message,
+              offset: 80
+            });
             this.closeLogin();
+            window.location.reload();
           } else {
-            this.$message.error(res.message);
+            this.$message.error({
+              message: res.message,
+              offset: 80
+            });
           }
         });
       }
