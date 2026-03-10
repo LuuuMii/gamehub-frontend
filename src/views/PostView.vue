@@ -428,9 +428,11 @@ import {
 } from "@/api/userColumnSubscribe.js";
 import { getUserCollectionFoldersByUserIdForTarget , addUserCollectionFolder } from "@/api/userCollectionFolder.js";
 import { syncCollectionRecords } from "@/api/userCollectionRecord.js"
-import { syncLikeRecord , getUserLikeRecord } from "@/api/userLikeRecord.js"
+import { insertUserLikeRecord , getUserLikeRecord } from "@/api/userLikeRecord.js"
 import { syncUnlikeRecord , getUserUnlikeRecord} from "@/api/userUnlikeRecord.js"
 import { getUserFollowRecord,syncUserFollowRecord } from "@/api/userFollowRecord.js"
+import { addViewRecord } from "@/api/articleViewRecord.js"
+import { getClientIP, getDeviceInfo } from "@/utils/clientInfo.js"
 export default {
   name: "ScreenDetectLayout",
   data() {
@@ -484,10 +486,22 @@ export default {
     if(username === this.articleDetails.createBy){
       this.isOwnerArticle = true;
     }
+    
   },
   methods: {
     async initData() {
       try {
+        const userId = localStorage.getItem("userId");
+        //用户进入页面文章浏览量操作
+        if(userId!==null && userId!== ""){
+          const articleViewRecord = {
+            userId:userId,
+            articleId:this.articleId,
+            ip:await getClientIP(),
+            userAgent:getDeviceInfo().browser
+          }
+          await addViewRecord(articleViewRecord);
+        }
         //查询文章信息
         const articleRes = await getArticleById(this.articleId);
         if (articleRes.code === 200) {
@@ -513,9 +527,9 @@ export default {
         if (articleColumnsRes.code === 200) {
           this.articleColumns = articleColumnsRes.data;
         }
-        // 查询当前用户是否订阅了
-        const userId = localStorage.getItem("userId");
-        if (userId) {
+        
+        if (userId) { 
+          // 查询当前用户是否订阅了
           const subscribeRes = await getSubscribeDetail(
             userId,
             this.articleColumns[0].id
@@ -531,38 +545,39 @@ export default {
             // 查询不到信息 则 当前用户没有订阅过该专栏
             this.isSubScribeColumn = false;
           }
-        }
-        // 判断当前用户是否已经收藏了这个文章
-        const userCollectionsRes = await getUserCollectionFoldersByUserIdForTarget(userId,this.articleDetails.id,"0");
-        this.isCollectedFlag = userCollectionsRes.data.some(item => item.isCollected === "1");
+          // 判断当前用户是否已经收藏了这个文章
+          const userCollectionsRes = await getUserCollectionFoldersByUserIdForTarget(userId,this.articleDetails.id,"0");
+          this.isCollectedFlag = userCollectionsRes.data.some(item => item.isCollected === "1");
 
-        // 查询当前用户关于这篇文章是否点赞  判断flag
-        const likeRecordRes = await getUserLikeRecord(localStorage.getItem("userId"),this.articleDetails.id,"0");
-        if(likeRecordRes.code === 200){
-          if(likeRecordRes.data.isDeleted === "0"){
-            this.isLikedFlag = true;
-          }else{
-            this.isLikedFlag = false;
+          // 查询当前用户关于这篇文章是否点赞  判断flag
+          const likeRecordRes = await getUserLikeRecord(localStorage.getItem("userId"),this.articleDetails.id,"0");
+          if(likeRecordRes.code === 200){
+            if(likeRecordRes.data.isDeleted === "0"){
+              this.isLikedFlag = true;
+            }else{
+              this.isLikedFlag = false;
+            }
+          }
+          // 查询当前用户是否点踩这篇文章 判断flag
+          const unLikeRecordRes = await getUserUnlikeRecord(localStorage.getItem("userId"),this.articleDetails.id,"0");
+          if(unLikeRecordRes.code === 200){
+            if(unLikeRecordRes.data.isDeleted === "0"){
+              this.isUnlikedFlag = true;
+            }else{
+              this.isUnlikedFlag = false;
+            }
+        }
+          // 查询当前用户是否关注作者
+          const userFollowRecordRes = await getUserFollowRecord(localStorage.getItem("userId"),this.authorDetails.id);
+          if(userFollowRecordRes.code === 200){
+            if(userFollowRecordRes.data.isDeleted === "0"){
+              this.isFollerFlag = true;
+            }else{
+              this.isFollerFlag = false;
+            }
           }
         }
-        // 查询当前用户是否点踩这篇文章 判断flag
-        const unLikeRecordRes = await getUserUnlikeRecord(localStorage.getItem("userId"),this.articleDetails.id,"0");
-        if(unLikeRecordRes.code === 200){
-          if(unLikeRecordRes.data.isDeleted === "0"){
-            this.isUnlikedFlag = true;
-          }else{
-            this.isUnlikedFlag = false;
-          }
-        }
-        // 查询当前用户是否关注作者
-        const userFollowRecordRes = await getUserFollowRecord(localStorage.getItem("userId"),this.authorDetails.id);
-        if(userFollowRecordRes.code === 200){
-          if(userFollowRecordRes.data.isDeleted === "0"){
-            this.isFollerFlag = true;
-          }else{
-            this.isFollerFlag = false;
-          }
-        }
+        
 
       } catch (e) {
         console.error(e);
@@ -785,9 +800,6 @@ export default {
     // 点赞点击事件
     async likeArticleHandler(){
       // 判断是否是自己的文章
-      if(this.articleDetails.createBy === localStorage.getItem("username")){
-        return;
-      }
       const likeRecord = {
         userId: localStorage.getItem("userId"),
         targetId: this.articleDetails.id,
@@ -795,30 +807,34 @@ export default {
         status: "0",
         isDeleted: "0"
       };
-      const res = await syncLikeRecord(localStorage.getItem("userId"),this.articleDetails.id,"0",likeRecord);
+      const res = await insertUserLikeRecord(localStorage.getItem("userId"),this.articleDetails.id,"0",likeRecord);
       if(res.code===200){
         // 查询当前用户关于这篇文章是否点赞  判断flag
         const likeRecordRes = await getUserLikeRecord(localStorage.getItem("userId"),this.articleDetails.id,"0");
         if(likeRecordRes.code === 200){
-          if(likeRecordRes.data.isDeleted === "0"){
-            this.isLikedFlag = true;
+          if(this.isLikedFlag){
+            this.isLikedFlag = !this.isLikedFlag;
+            this.articleDetails.likeCount--;
+            this.authorData.totalLikeNum--;
           }else{
-            this.isLikedFlag = false;
+            this.isLikedFlag = !this.isLikedFlag;
+            this.articleDetails.likeCount++;
+            this.authorData.totalLikeNum++;
           }
           // 重新获取点赞数
           //查询文章信息
-          const articleRes = await getArticleById(this.articleId);
-          if (articleRes.code === 200) {
-            this.articleDetails = articleRes.data;
-            this.articleDetails.tags = JSON.parse(this.articleDetails.tags);
-          }
+          // const articleRes = await getArticleById(this.articleId);
+          // if (articleRes.code === 200) {
+          //   this.articleDetails = articleRes.data;
+          //   this.articleDetails.tags = JSON.parse(this.articleDetails.tags);
+          // }
           // 查询作者数据信息(总点赞数等)
-          const authorDataRes = await getAuthorDataForArticlePage(
-            this.articleDetails.createBy
-          );
-          if (authorDataRes.code === 200) {
-            this.authorData = authorDataRes.data;
-          }
+          // const authorDataRes = await getAuthorDataForArticlePage(
+          //   this.articleDetails.createBy
+          // );
+          // if (authorDataRes.code === 200) {
+          //   this.authorData = authorDataRes.data;
+          // }
         }
       }
     },

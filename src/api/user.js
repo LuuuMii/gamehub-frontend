@@ -22,3 +22,10 @@ export function getAuthorDataForArticlePage(username){
     return request.get(`/users/getAuthorDataForArticlePage/${username}`)
 }
 
+export function logout(token){
+    return request.post('/users/logout',null,{
+        headers: {
+            Authorization: token
+        }
+    })
+}

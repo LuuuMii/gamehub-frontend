@@ -186,7 +186,7 @@
                     </div>
                     <div class="like-comment-btn">
                       <img src="@/assets/icon/commentLikeHover.png" alt="" />
-                      <span>1</span>
+                      <span>{{ sub.likeCount<=0? "" : sub.likeCount }}</span>
                     </div>
                   </div>
                 </div>

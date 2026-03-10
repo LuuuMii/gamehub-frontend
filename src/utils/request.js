@@ -1,5 +1,6 @@
 import axios from 'axios'
 import Vue from 'vue'
+import { eventBus } from "@/mitt/eventBus";
 
 // 创建 axios 实例
 const service = axios.create({
@@ -13,7 +14,8 @@ service.interceptors.request.use(
     // 如果有 token，就在请求头带上
     const token = localStorage.getItem('token')
     if (token) {
-      config.headers['Authorization'] = 'Bearer ' + token
+      config.headers['Authorization'] = 'Bearer ' + token;
+      config.headers['satoken'] = token;
     }
     return config
   },
@@ -27,6 +29,10 @@ service.interceptors.response.use(
   response => {
     // 统一处理成功响应
     const res = response.data
+    if(res.code === 401){
+      eventBus.emit("openLogin");
+      eventBus.emit("openMask");
+    }
     return res
   },
   error => {

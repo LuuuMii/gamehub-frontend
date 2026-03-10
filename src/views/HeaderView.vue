@@ -159,6 +159,7 @@
         <li>
           <router-link to="/">登录</router-link>
         </li>
+        
         <li @click="headerPushRouter('/create/editor')">
           <div class="right-one-bar">
             <img src="@/assets/icon/add_circle_FFF.svg" />
@@ -172,6 +173,7 @@
 
 
 <script>
+import { logout } from "@/api/user"
 import { eventBus } from "@/mitt/eventBus";
 import { mapState } from "vuex";
 export default {
@@ -366,11 +368,16 @@ export default {
         this.showUserInfoTimer = null;
       }
     },
-    logout() {
-      localStorage.removeItem("token");
-      localStorage.removeItem("userId");
-      localStorage.removeItem("username");
-      window.location.reload();
+    async logout() {
+      const res = await logout(localStorage.getItem("token"));
+      alert(localStorage.getItem("token"));
+      if(res.code === 200){
+        localStorage.removeItem("token");
+        localStorage.removeItem("userId");
+        localStorage.removeItem("username");
+        localStorage.removeItem("avatar");
+        window.location.reload();
+      }
     },
     headerPushRouter(url) {
       if (this.$route.path !== url) {

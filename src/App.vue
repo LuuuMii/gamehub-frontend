@@ -82,6 +82,7 @@ export default {
       eventBus.emit("closeScheduledDialog");
 
       eventBus.emit("closeCollectionDialog");
+      eventBus.emit("closeLogin");
     },
     initData() {
       const token = localStorage.getItem("token");
