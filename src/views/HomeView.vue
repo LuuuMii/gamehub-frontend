@@ -4,9 +4,9 @@
     <!-- 轮播图 -->
     <div class="movingPic">
       <!-- 外部的大图  -->
-      <img class="bigPic" :src="images[currentPicIndex]?.url" alt="" />
+      <img class="bigPic" :src="images[currentPicIndex].coverImg" alt="" />
       <!-- 里面的图片 -->
-      <div class="centerPicDiv">
+      <div class="centerPicDiv" >
         <div class="centerPicCarousel">
           <el-carousel
             height="550px"
@@ -16,7 +16,7 @@
           >
             <el-carousel-item v-for="(item, index) in images" :key="index">
               <div class="carouselItemWrapper">
-                <img :src="item.url" :alt="item.title" />
+                <img :src="item.coverImg" :alt="item.title" @click="handleRouterPush(item.id)" />
                 <div class="carouselTitle">{{ item.title }}</div>
               </div>
             </el-carousel-item>
@@ -57,11 +57,10 @@
                 @mouseenter="hover0 = true"
                 @mouseleave="hover0 = false"
               >
-                <div class="dropDownItem">精品栏目菜单菜单</div>
-                <div class="dropDownItem">精品栏目菜单</div>
-                <div class="dropDownItem">精品栏目菜单</div>
-                <div class="dropDownItem">精品栏目菜单</div>
-                <div class="dropDownItem">精品栏目菜单</div>
+                <div class="dropDownItem" 
+                @click="handleContentLeftNavClick(item.name)"
+                v-for="item in contentNavItems1" 
+                :key="item.id">{{ item.name }}</div>
               </div>
               <li @mouseenter="hover1 = true" @mouseleave="hover1 = false">
                 更多
@@ -73,16 +72,15 @@
                 @mouseenter="hover1 = true"
                 @mouseleave="hover1 = false"
               >
-                <div class="dropDownItem">精品栏目菜单菜单</div>
-                <div class="dropDownItem">精品栏目菜单</div>
-                <div class="dropDownItem">精品栏目菜单</div>
-                <div class="dropDownItem">精品栏目菜单</div>
-                <div class="dropDownItem">精品栏目菜单</div>
+                <div class="dropDownItem" 
+                @click="handleContentLeftNavClick(item.name)"
+                v-for="item in contentNavItems2" 
+                :key="item.id">{{ item.name }}</div>
               </div>
             </ul>
           </div>
         </div>
-        <!-- 下面的内容 -->
+        <!-- 下面文章的内容 -->
         <div>
           <div class="allPostContentDiv">
             <ul>
@@ -93,9 +91,9 @@
                   :key="post.id"
                 >
                   <!-- 图片 -->
-                  <div class="postPicDiv">
+                  <div class="postPicDiv" @click="handleRouterPush(post.id)">
                     <img
-                      src="../assets/postPic1.jpg"
+                      :src="post.coverImg"
                       alt=""
                       class="postPicImg"
                     />
@@ -103,7 +101,7 @@
                     <div class="overlay">
                       <div class="overlay-content">
                         <div class="post-type-wrapper">
-                          <div class="post-type">瓦洛兰特</div>
+                          <div class="post-type">{{ post.category }}</div>
                           <div class="divider"></div>
                         </div>
                         <div class="read-more">Read More</div>
@@ -111,22 +109,22 @@
                     </div>
                   </div>
                   <!-- 帖子的标题 -->
-                  <div class="post-title-div">
+                  <div class="post-title-div" @click="handleRouterPush(post.id)">
                     <span class="with-dot post-title"
-                      >《王牌钓手 欢钓水族馆》：欢乐钓鱼与幸运扭蛋</span
+                      > {{ post.title }}</span
                     >
                   </div>
                   <!-- 帖子的dig -->
                   <div>
                     <span class="post-dig"
-                      >&nbsp;&nbsp;首先要说的是，这是个合家欢、欢乐向的游戏，与其他重内容的游戏的评测角度不同</span
+                      >&nbsp;&nbsp;{{ post.summary === "" ? "暂无介绍" : post.summary }}</span
                     >
                   </div>
                   <!-- 帖子写的版面、楼主、日期 -->
                   <div class="post-content-div">
-                    <span class="post-type-span">版面:游戏综合讨论</span>
-                    <span class="post-author-span">楼主：冰河葬离心丶</span>
-                    <span class="post-date-span">2022.11.04</span>
+                    <span class="post-type-span">版面:{{ post.category }}</span>
+                    <span class="post-author-span">楼主：{{ post.createBy }}</span>
+                    <span class="post-date-span">{{ formatDateTime(post.createTime) }}</span>
                   </div>
                 </div>
               </li>
@@ -134,7 +132,12 @@
           </div>
           <!--分页-->
           <div class="el-pagination-div">
-            <el-pagination background layout="prev, pager, next" :total="1000">
+            <el-pagination 
+            background 
+            layout="prev, pager, next" 
+            :total="total"
+            @current-change="handleCurrentChange"
+            >
             </el-pagination>
           </div>
         </div>
@@ -175,11 +178,11 @@
 
               <!-- 右边内容 -->
               <div class="post-hot-right-content">
-                <div class="post-hot-right-content-title">
+                <div class="post-hot-right-content-title" @click="handleRouterPush(post.id)">
                   {{ post.title }}
                 </div>
                 <div class="post-hot-right-content-forum">
-                  {{ post.forum }}
+                  {{ post.createBy }}
                 </div>
               </div>
             </div>
@@ -192,6 +195,7 @@
 </template>
 
 <script>
+import { getHotArticle , getArticleList , getHotArticleByCategory } from "@/api/article.js"
 
 export default {
   name: "HomeView",
@@ -223,12 +227,61 @@ export default {
           url: require("@/assets/pic5.jpg"),
         },
       ],
+      articleQuery: {},
+      selectedCategory:null,
+      pageNum: 1,
+      pageSize: 6,
+      total: 100,
       contentLeftNavItems: [
         "全部",
-        "游戏综合",
-        "游戏研究与杂谈",
         "魔兽世界",
+        "暗黑破坏神",
+        "守望先锋",
         "炉石传说",
+      ],
+      contentNavItems1:[
+        {
+          id:1,
+          name:"英雄联盟"
+        },
+        {
+          id:2,
+          name:"瓦洛兰特"
+        },
+        {
+          id:3,
+          name:"云顶之弈"
+        },
+        {
+          id:4,
+          name:"绝地求生"
+        },
+        {
+          id:5,
+          name:"和平精英"
+        },
+      ],
+      contentNavItems2:[
+        {
+          id:1,
+          name:"APEX英雄"
+        },
+        {
+          id:2,
+          name:"守望先锋2"
+        },
+        {
+          id:3,
+          name:"星际争霸2"
+        },
+        {
+          id:4,
+          name:"最终幻想"
+        },
+        {
+          id:5,
+          name:"我的世界"
+        },
       ],
       contentLeftNavSelectedItem: "全部", // 默认选中“全部”
       hover0: false,
@@ -242,13 +295,16 @@ export default {
         { id: 6, title: "帖子6" },
       ],
       postHotNavItems: [
-        "暴雪游戏",
-        "主机游戏",
-        "手机游戏",
-        "玩家生活",
-        "玩家社区",
+        "英雄联盟",
+        "瓦洛兰特",
+        "魔兽世界",
+        "守望先锋",
+        "王者荣耀",
       ],
-      postHotNavSelectedItem: "暴雪游戏",
+      postHotNavSelectedItem: "英雄联盟",
+      postHotQuery:{
+
+      },
       hotPostList: [
         {
           id: 1,
@@ -316,17 +372,100 @@ export default {
       ],
     };
   },
+  created(){
+    this.initData();
+  },
   methods: {
+    async initData(){
+      const hotArticleRes =  await getHotArticle();
+      this.images = hotArticleRes.data;
+      this.getArticleList();
+      this.getHotArticleByCategory();
+    },
     handleCarouselChange(index) {
       this.currentPicIndex = index;
+    },
+    handleCarouselClick(){
+      const targetUrl = "post/" + this.images[this.currentPicIndex].id;
+      this.$router.push(targetUrl)
     },
     /* li的点击事件 */
     handleContentLeftNavClick(item) {
       this.contentLeftNavSelectedItem = item;
+      this.listPostByCategoryForNav(item);
+    },
+    
+    // 根据条件分页查询数据(导航条的点击)
+    async listPostByCategoryForNav(category){
+      if(category === "全部"){
+        this.selectedCategory = null;
+      }else{
+        this.selectedCategory = category;
+      }
+      this.articleQuery = {
+        ...this.articleQuery,
+        category: this.selectedCategory,
+        pageNum: 1,
+        pageSize: this.pageSize
+      }
+      const articleListRes = await getArticleList(this.articleQuery);
+      this.postList = articleListRes.data.records;
+      this.total = articleListRes.data.total;
+      this.pageNum = articleListRes.data.current;
+    },
+    async getHotArticleByCategory(){
+      this.postHotQuery = {
+        ...this.postHotQuery,
+        category: this.postHotNavSelectedItem,
+        pageNum:1,
+        pageSize:10
+      }
+      const res = await getHotArticleByCategory(this.postHotQuery)
+      this.hotPostList = res.data;
     },
     handlepostHostNavClick(item) {
       this.postHotNavSelectedItem = item;
+      this.getHotArticleByCategory();
     },
+    async getArticleList(){
+      this.articleQuery = {
+        ...this.articleQuery,
+        category: this.selectedCategory,
+        pageNum: this.pageNum,
+        pageSize: this.pageSize
+      }
+      const articleListRes = await getArticleList(this.articleQuery);
+      this.postList = articleListRes.data.records;
+      this.total = articleListRes.data.total;
+      this.pageNum = articleListRes.data.current;
+    },
+    // 分页点击事件
+    async handleCurrentChange(page){
+      this.articleQuery = {
+        ...this.articleQuery,
+        category: this.selectedCategory,
+        pageNum: page,
+        pageSize: this.pageSize
+      }
+      const articleListRes = await getArticleList(this.articleQuery);
+      this.postList = articleListRes.data.records;
+      this.total = articleListRes.data.total;
+      this.pageNum = articleListRes.data.current;
+    },
+    handleRouterPush(postId){
+      const targetUrl = "post/" + postId;
+      this.$router.push(targetUrl).then(() => {
+        window.scrollTo(0, 0);
+      });
+    },
+    formatDateTime(dateStr){
+      if (!dateStr) return ''
+      const date = new Date(dateStr)
+      const year = date.getFullYear()
+      const month = (date.getMonth() + 1).toString().padStart(2, '0')
+      const day = date.getDate().toString().padStart(2, '0')
+      return `${year}.${month}.${day}`
+    }
   },
   computed: {
     groupedPosts() {
@@ -693,6 +832,7 @@ export default {
 .el-pagination-div {
   width: 100%;
   padding-top: 10px;
+  margin-bottom: 10px;
   justify-items: center;
 }
 

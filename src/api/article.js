@@ -24,6 +24,19 @@ export function scheduledReleaseArticle(data) {
     return request.post('/article/scheduledReleaseArticle',data)
 }
 
+export function getHotArticle() {
+    return request.get('/article/getHotArticle')
+}
+
+export function getArticleList(query) {
+    return request.post('/article/getArticleList',query)
+}
+
+export function getHotArticleByCategory(query) {
+    return request.post('/article/getHotArticleByCategory',query)
+}
+
+
 
 
 
