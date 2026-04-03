@@ -16,7 +16,68 @@
         </ul>
       </div>
     </div>
-
+    <div class="search-box" ref="searchBox" @click.stop :class="{ focusInput : isFoucsInputSearchFlag }">
+      <!-- 第一层 -->
+      <div class="search-first-floor">
+        <div class="search-first-floor-left">
+          <input type="text" 
+          v-model="searchContent" 
+          :placeholder="placeholderSearchContent" 
+          @keyup.enter="handleSearch"
+          @focus="focusInputSearch"/>
+        </div>
+        <div class="search-first-floor-right" @click="handleSearch">
+          <img src="@/assets/icon/search_24dp_000.svg" />
+        </div>
+      </div>
+      <!-- 第二层 搜索历史-->
+      <div class="search-second-floor" v-show="isFoucsInputSearchFlag">
+        <div>
+          <div>搜索历史</div>
+          <div @click="handleDeleteAllHistory">清空</div>
+        </div>
+        <div :class="{ expand: isExpandSearchFlag }" ref="historyWrapper">
+          <div class="search-history-content-box" @click="handleSearchByContent(item.content)" v-for="(item,index) in historyList" :key="index">
+            {{ item.content }}
+            <div class="close" @click.stop="handleDeleteByHistory('111')">
+              <svg class="close-icon" viewBox="0 0 1024 1024" width="14" height="14">
+                <path d="M512 64.303538c-247.25636 0-447.696462 200.440102-447.696462 447.696462
+                0 247.254314 200.440102 447.696462 447.696462 447.696462s447.696462-200.440102
+                447.696462-447.696462S759.25636 64.303538 512 64.303538zM710.491727 665.266709c12.491499
+                12.491499 12.489452 32.729425-0.002047 45.220924-6.246261 6.246261-14.429641 9.370415-22.611997
+                9.370415s-16.363689-3.121084-22.60995-9.366322L512 557.222971 358.730221 710.491727
+                c-6.246261 6.246261-14.429641 9.366322-22.611997 9.366322s-16.365736-3.125177-22.611997-9.370415
+                c-12.491499-12.491499-12.491499-32.729425 0-45.220924l153.268756-153.266709L313.50725 358.730221
+                c-12.491499-12.491499-12.489452-32.729425 0.002047-45.220924s32.729425-12.495592 45.220924-0.004093
+                l153.268756 153.268756 153.268756-153.268756c12.491499-12.491499 32.729425-12.487406 45.220924
+                0.004093s12.493545 32.729425 0.002047 45.220924L557.225017 512 710.491727 665.266709z">
+                </path>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div class="search-expand-button"  @click="isExpandSearchFlag = !isExpandSearchFlag">
+          <div class="search-expand-text" >{{ isExpandSearchFlag? "收起" : "展开更多" }}</div>
+          <svg class="fold-icon" :class="{ rotate: isExpandSearchFlag }" viewBox="0 0 12 12">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M5.46967 9.17678C5.76256 9.46967 6.23744 9.46967 6.53033 9.17678L10.7286 4.97855
+              C10.9238 4.78329 10.9238 4.46671 10.7286 4.27145C10.5333 4.07618 10.2167 4.07618 10.0214 4.27145L6 8.29289
+              L1.97855 4.27145C1.78329 4.07618 1.46671 4.07618 1.27145 4.27145
+              C1.07618 4.46671 1.07618 4.78329 1.27145 4.97855L5.46967 9.17678Z">
+            </path>
+          </svg>
+        </div>
+      </div>
+      <!-- 第三层 热搜 -->
+      <div class="search-third-floor" v-show="isFoucsInputSearchFlag">
+        <div>cilicili热搜</div>
+        <div class="hot-search-box">
+          <div class="one-hot-search-box" @click="handleSearchByContent(item.content)" v-for="(item,index) in hotSearchList" :key="index">
+            <div :class="{'last-seven-text' : index+1>=4}">{{ index + 1}}</div>
+            <div>{{ item.content }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="rightContainer">
       <ul class="rightNavList">
         <li>
@@ -56,7 +117,7 @@
           <img class="login-avatar" :src="userAvatar" />
         </li>
         <!-- 展开个人信息栏目 -->
-        
+
         <div
           v-if="isShowUserInfo"
           class="userinfo-popover"
@@ -151,15 +212,30 @@
           </div>
         </li>
         <li>
-          <router-link to="/">音乐盒</router-link>
+          <div class="right-one-bar">
+            <img src="@/assets/icon/mail_24dp_FFF.svg" />
+            <span>消息</span>
+          </div>
         </li>
         <li>
-          <router-link to="/">登录</router-link>
+          <div class="right-one-bar">
+            <img src="@/assets/icon/notifications_24dp_FFF.svg" />
+            <span>动态</span>
+          </div>
         </li>
         <li>
-          <router-link to="/">登录</router-link>
+          <div class="right-one-bar">
+            <img src="@/assets/icon/favorite_24dp_FFF.svg" />
+            <span>收藏</span>
+          </div>
         </li>
-        
+        <li>
+          <div class="right-one-bar">
+            <img src="@/assets/icon/history_24dp_FFF_FILL0.svg" />
+            <span>历史</span>
+          </div>
+        </li>
+
         <li @click="headerPushRouter('/create/editor')">
           <div class="right-one-bar">
             <img src="@/assets/icon/add_circle_FFF.svg" />
@@ -173,7 +249,7 @@
 
 
 <script>
-import { logout } from "@/api/user"
+import { logout } from "@/api/user";
 import { eventBus } from "@/mitt/eventBus";
 import { mapState } from "vuex";
 export default {
@@ -186,11 +262,73 @@ export default {
       userAvatar: null,
       isShowUserInfo: false,
       showUserInfoTimer: null,
-      isLogin:false,
+      isLogin: false,
+      isExpandSearchFlag: false,
+      isFoucsInputSearchFlag: false,
+      searchContent:"",
+      placeholderSearchContent:"瓦洛兰特",
+      historyList:[
+        { id: 1, content: 'springcloud' },
+        { id: 2, content: 'vue' },
+        { id: 3, content: 'javascript' },
+        { id: 4, content: 'javascript' },
+        { id: 5, content: 'javascript' },
+        { id: 6, content: 'javascript' },
+        { id: 7, content: 'javascript' },
+        { id: 8, content: 'javascript' },
+        { id: 9, content: 'javascript' },
+        { id: 10, content: 'javascript' },
+        { id: 11, content: 'javascript' },
+        { id: 12, content: 'javascript' },
+        { id: 13, content: 'javascript' },
+      ],
+      hotSearchList:[
+        {
+          id: 1,
+          content:'全球PC市场进入寒冬了吗'
+        },
+        {
+          id: 2,
+          content:'极客湾造出辐射哔哔小子'
+        },
+        {
+          id: 3,
+          content:'DRG vs NOVA VCT第一赛段'
+        },
+        {
+          id: 4,
+          content:'三角洲行动烽火联赛春季赛'
+        },
+        {
+          id: 5,
+          content:'沪指再度失守3900点'
+        },
+        {
+          id: 6,
+          content:'雪山救水滴'
+        },
+        {
+          id: 7,
+          content:'NCT李马克不续约离开SM'
+        },
+        {
+          id: 8,
+          content:'伊朗称再次击落美军F35战机'
+        },
+        {
+          id: 9,
+          content:'Anthropic误删数千GitHub仓库'
+        },
+        {
+          id: 10,
+          content:'东契奇受伤'
+        },
+      ],
+      canExpand:false,
     };
   },
-  created(){
-    if(this.$store.state.token){
+  created() {
+    if (this.$store.state.token) {
       this.isLogin = true;
     }
   },
@@ -371,7 +509,7 @@ export default {
     async logout() {
       const res = await logout(localStorage.getItem("token"));
       alert(localStorage.getItem("token"));
-      if(res.code === 200){
+      if (res.code === 200) {
         localStorage.removeItem("token");
         localStorage.removeItem("userId");
         localStorage.removeItem("username");
@@ -384,9 +522,47 @@ export default {
         this.$router.push(url);
       }
     },
+
+    // 选中搜索框点击事件
+    focusInputSearch(){
+      this.isFoucsInputSearchFlag = true;
+    },
+    // 搜索框取消点击事件
+    handleClickOutside(e) {
+    const box = this.$refs.searchBox
+      if (box && !box.contains(e.target)) {
+        this.isFoucsInputSearchFlag = false
+      }
+    },
+    // 搜索事件
+    handleSearch(){
+      if(this.searchContent === ""){
+        alert(" 跳转 (无内容)"+this.placeholderSearchContent)
+      }else{
+        alert("跳转" + this.searchContent)
+      }
+      
+    },
+    // 根据内容查询点击事件(包含历史内容查询和热搜查询)
+    handleSearchByContent(content){
+      alert("历史记录跳转 : " +  content);
+    },
+    handleDeleteByHistory(historyContent){
+      alert("删除浏览记录 : " + historyContent);
+    },
+    // 删除所有的浏览记录
+    handleDeleteAllHistory(){
+      alert("删除所有的浏览记录")
+    },
+    
   },
   mounted() {
     this.restaurants = this.loadAll();
+    this.boundClickOutside = this.handleClickOutside.bind(this)
+    document.addEventListener('click', this.boundClickOutside)
+  },
+  beforeUnmount() {
+    document.removeEventListener('click', this.boundClickOutside)
   },
   computed: {
     ...mapState(["user", "token"]),
@@ -462,7 +638,7 @@ export default {
 .rightNavList {
   list-style: none;
   display: flex;
-  gap: 30px;
+  gap: 18px;
   pad: 0;
   margin: 0;
 }
@@ -668,5 +844,207 @@ export default {
 }
 .popover-level:hover {
   background-color: #f2f2f2;
+}
+/* 搜索框 */
+.search-box {
+  position: absolute;
+  top: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 425px;
+  min-height: 40px;
+  padding: 0 10px 0 4px;
+  border: 1px solid #e3e5e7;
+  border-radius: 4px;
+  color: #000;
+  background-color: #e1e1e4;
+  transition: 0.3s;
+}
+.focusInput{
+  background-color: #fff;
+}
+.search-first-floor{
+  display: flex;
+  width: 100%;
+  padding-top: 4px;
+}
+.search-first-floor-left{
+  width: 380px;
+  height: 30px;
+  background-color: #e3e5e7;
+  border: 1px solid #e3e5e7;
+  border-radius: 4px;
+  padding: 0 0 0 8px;
+}
+.search-first-floor-left input {
+  width: 100%;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  line-height: 20px;
+  background-color: #e3e5e7;
+}
+.search-first-floor-right{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 30px;
+  height: 30px;
+  margin-left: 10px;
+  border-radius: 4px;
+  transition: 0.3s;
+}
+.search-first-floor-right:hover{
+  background-color: #e3e5e7;
+  cursor: pointer;
+}
+.search-second-floor{
+  width: 100%;
+  padding: 5px 8px 2px;
+}
+.search-second-floor > div:nth-child(1){
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.search-second-floor > div:nth-child(1) > div:nth-child(1){
+  height: 24px;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 24px;
+}
+.search-second-floor > div:nth-child(1) > div:nth-child(2){
+  height: 15px;
+  color: #9499A0;
+  font-size: 12px;
+  line-height: 15px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.search-second-floor > div:nth-child(1) > div:nth-child(2):hover{
+  color: #00aeec;
+}
+.search-second-floor > div:nth-child(2){
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  max-height: 80px;
+  overflow: hidden;
+}
+.search-second-floor > div:nth-child(2).expand{
+  max-height: 160px;
+}
+.search-history-content-box{
+  position: relative;
+  height: 30px;
+  font-size: 12px;
+  color: #18191c;
+  line-height: 15px;
+  padding: 7px 10px 8px;
+  border-radius: 4px;
+  background-color: #F6F7F8;
+  cursor: pointer;
+  margin-right: 10px;
+  margin-bottom: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 96px;
+  transition: 0.3s;
+}
+
+.search-history-content-box:hover{
+  color:#2bbbee;
+}
+.search-expand-button{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.search-expand-button{
+  font-size: 12px;
+  line-height: 15px;
+  height: 15px;
+  color: #9499A0;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+.fold-icon{
+  width: 12px;
+  height: 12px;
+  fill: #9499A0;
+  margin-left: 2px;
+}
+.fold-icon.rotate {
+  transform: rotate(180deg);
+}
+.close{
+  position: absolute;
+  display: none;
+  top: 0;
+  right: 0;
+  transition: 0.3s;
+}
+.close-icon{
+  fill: #9499A0;;
+}
+.search-history-content-box:hover .close{
+  display: block;
+}
+.search-third-floor{
+  width: 100%;
+  margin-bottom: 10px;
+}
+.search-third-floor > div:nth-child(1){
+  height: 24px;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 24px;
+  color: #18191C;
+  margin-left: 8px;
+}
+.hot-search-box{
+  display: flex;
+  flex-wrap: wrap;
+}
+.one-hot-search-box{
+  display: flex;
+  width: 50%;
+  height: 38px;
+  padding: 0 8px 0;
+  align-items: center;
+}
+.one-hot-search-box:hover{
+  cursor: pointer;
+  background-color: #e3e5e7;
+}
+/* 排行 */
+.one-hot-search-box > div:nth-child(1){
+  color: #18191C;
+  font-size: 14px;
+  line-height: 17px;
+  height: 17px;
+  margin-right: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0;
+}
+/* 内容 */
+.one-hot-search-box > div:nth-child(2){
+  font-size: 14px;
+  line-height: 17px;
+  height: 17px;
+  margin-right: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0;
+}
+/* 排行榜后七位的颜色 */
+.last-seven-text{
+  color: #9499a0 !important;
 }
 </style>
