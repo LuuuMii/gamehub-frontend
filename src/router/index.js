@@ -18,6 +18,8 @@ import PostCommentView from '../views/user-space/sub/PostCommentView.vue'
 import ReceivedCommentView from '../views/user-space/sub/ReceivedCommentView.vue'
 import WatchedColumnView from '../views/user-space/sub/WatchedColumnView.vue'
 import ActivityView from '../views/user-space/sub/ActivityView.vue'
+import SearchView from "@/views/search-view/SearchView.vue"
+import CustomView from "@/views/search-view/sub/CustomView.vue"
 
 Vue.use(VueRouter)
 
@@ -32,6 +34,19 @@ const routes = [
     name: 'post',
     component: PostView,
     props: true,
+  },
+  {
+    path: '/search',
+    name: 'search',
+    component: SearchView,
+    props: true,
+    children:[
+      {
+        path: 'custom',
+        name: 'CustomView',
+        component: CustomView
+      }
+    ]
   },
   {
     path: '/create/editor/:articleId',

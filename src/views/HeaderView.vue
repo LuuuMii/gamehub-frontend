@@ -13,6 +13,7 @@
           <li><router-link to="/post/24">论坛</router-link></li>
           <li><router-link to="/userspace/1">关于</router-link></li>
           <li><router-link to="/create/editor">编辑</router-link></li>
+          <li><router-link to="/search/custom">搜索</router-link></li>
         </ul>
       </div>
     </div>
@@ -31,7 +32,7 @@
         </div>
       </div>
       <!-- 第二层 搜索历史-->
-      <div class="search-second-floor" v-show="isFoucsInputSearchFlag">
+      <div class="search-second-floor" v-show="isFoucsInputSearchFlag  && searchContent===''">
         <div>
           <div>搜索历史</div>
           <div @click="handleDeleteAllHistory">清空</div>
@@ -68,13 +69,23 @@
         </div>
       </div>
       <!-- 第三层 热搜 -->
-      <div class="search-third-floor" v-show="isFoucsInputSearchFlag">
+      <div class="search-third-floor" v-show="isFoucsInputSearchFlag && searchContent===''">
         <div>cilicili热搜</div>
         <div class="hot-search-box">
           <div class="one-hot-search-box" @click="handleSearchByContent(item.content)" v-for="(item,index) in hotSearchList" :key="index">
             <div :class="{'last-seven-text' : index+1>=4}">{{ index + 1}}</div>
             <div>{{ item.content }}</div>
           </div>
+        </div>
+      </div>
+      <!-- 第四层  只有输入内容才会出现 -->
+      <div class="search-fourth-floor" v-show="isFoucsInputSearchFlag && searchContent!==''">
+        <div class="search-content-box" 
+        v-for="(item,index) in searchListByEs" 
+        :key="index" 
+        v-html="item.highLightContent"
+        @click="handleSearchByContent(item.rawContent)">
+          
         </div>
       </div>
     </div>
@@ -325,6 +336,58 @@ export default {
         },
       ],
       canExpand:false,
+      searchListByEs:[
+        {
+          id:1,
+          rawContent:'valorant game best',
+          highLightContent:'valorant <em>game</em> best'
+        },
+        {
+          id:2,
+          rawContent:'valorant game best',
+          highLightContent:'valorant <em>game</em> best'
+        },
+        {
+          id:3,
+          rawContent:'valorant game best',
+          highLightContent:'valorant <em>game</em> best'
+        },
+        {
+          id:4,
+          rawContent:'valorant game best',
+          highLightContent:'valorant <em>game</em> best'
+        },
+        {
+          id:5,
+          rawContent:'valorant game best',
+          highLightContent:'valorant <em>game</em> best'
+        },
+        {
+          id:6,
+          rawContent:'valorant game best',
+          highLightContent:'valorant <em>game</em> best'
+        },
+        {
+          id:7,
+          rawContent:'valorant game best',
+          highLightContent:'valorant <em>game</em> best'
+        },
+        {
+          id:8,
+          rawContent:'valorant game best',
+          highLightContent:'valorant <em>game</em> best'
+        },
+        {
+          id:9,
+          rawContent:'valorant game best',
+          highLightContent:'valorant <em>game</em> best'
+        },
+        {
+          id:10,
+          rawContent:'valorant game best',
+          highLightContent:'valorant <em>game</em> best'
+        },
+      ],
     };
   },
   created() {
@@ -558,8 +621,8 @@ export default {
   },
   mounted() {
     this.restaurants = this.loadAll();
-    this.boundClickOutside = this.handleClickOutside.bind(this)
-    document.addEventListener('click', this.boundClickOutside)
+    this.boundClickOutside = this.handleClickOutside.bind(this);
+    document.addEventListener('click', this.boundClickOutside);
   },
   beforeUnmount() {
     document.removeEventListener('click', this.boundClickOutside)
@@ -1046,5 +1109,33 @@ export default {
 /* 排行榜后七位的颜色 */
 .last-seven-text{
   color: #9499a0 !important;
+}
+.has-content{
+  background-color: #fff!important;
+}
+.search-fourth-floor{
+  width: 100%;
+  padding: 10px 0;
+}
+.search-content-box{
+  width: 100%;
+  height: 32px;
+  line-height: 32px;
+  font-size: 14px;
+  text-align: left;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  cursor: pointer;
+  padding: 0 16px;
+  margin-bottom: 4px;
+  transition: 0.3s;
+}
+.search-content-box:hover{
+  background-color: #e3e5e7;
+}
+:deep(.search-content-box em){
+  color: #f25d8e;
+  font-style: normal;
 }
 </style>
