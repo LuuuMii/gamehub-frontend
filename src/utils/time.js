@@ -27,3 +27,28 @@ export function formatTimeAgo(dateString) {
     }
   }
 }
+
+export function getTimeRange(type) {
+  const now = Date.now(); // 当前时间戳（毫秒）
+
+  let beginTime = null;
+
+  switch (type) {
+    case 'day':
+      beginTime = now - 24 * 60 * 60 * 1000;
+      break;
+    case 'week':
+      beginTime = now - 7 * 24 * 60 * 60 * 1000;
+      break;
+    case 'halfyear':
+      beginTime = now - 180 * 24 * 60 * 60 * 1000;
+      break;
+    default:
+      return null;
+  }
+
+  return {
+    begin: beginTime,
+    end: now
+  };
+}

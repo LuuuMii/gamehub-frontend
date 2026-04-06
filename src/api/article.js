@@ -36,6 +36,9 @@ export function getHotArticleByCategory(query) {
     return request.post('/article/getHotArticleByCategory',query)
 }
 
+export function getArticleFromEs(query) {
+    return request.post('/article/getArticleFromEs',query)
+}
 
 
 

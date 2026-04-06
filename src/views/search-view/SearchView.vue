@@ -109,9 +109,10 @@
                 <span class="HotSearchCard-dot"></span>
                 <a href="/post/24">
                   <span class="hot-search-title"
-                    >一栏局势一栏局势一栏局势一栏局势一栏局势12321321312123</span>
+                    >一栏局势一栏局势一栏局势一栏局势一栏局势12321321312123</span
+                  >
                 </a>
-                <span class="hot-search-vivst-count ">533 万</span>
+                <span class="hot-search-vivst-count">533 万</span>
               </div>
               <div class="right-one-search">
                 <span>热</span>
@@ -125,6 +126,8 @@
 </template>
 
 <script>
+import { getTimeRange } from "@/utils/time.js";
+import { eventBus } from "@/mitt/eventBus";
 export default {
   name: "SearchView",
   data() {
@@ -177,18 +180,22 @@ export default {
         {
           id: 1,
           name: "综合排序",
+          type: "",
         },
         {
           id: 2,
           name: "最多浏览",
+          type: "view",
         },
         {
           id: 3,
           name: "最新发布",
+          type: "time",
         },
         {
           id: 4,
           name: "最多评论",
+          type: "comment",
         },
       ],
       selectedCustomFilter: "综合排序",
@@ -196,23 +203,33 @@ export default {
         {
           id: 1,
           name: "全部日期",
+          type: "",
         },
         {
           id: 2,
           name: "最近一天",
+          type: "day",
         },
         {
           id: 3,
           name: "最近一周",
+          type: "week",
         },
         {
           id: 4,
           name: "最近半年",
+          type: "halfyear",
         },
       ],
       selectedDateFilter: "全部日期",
       rotateFlag: false,
     };
+  },
+  created() {
+    eventBus.on("resetFilter",()=>{
+      this.selectedCustomFilter = this.customFilterList[0].name;
+      this.selectedDateFilter = this.dateFilterList[0].name;
+    })
   },
   methods: {
     handleChooseType(item) {
@@ -221,10 +238,46 @@ export default {
     // 普通过滤条件
     searchContentByCustom(item) {
       this.selectedCustomFilter = item.name;
+      const query = { ...this.$route.query };
+      if (item.type === "") {
+        delete query.order;
+      } else {
+        query.order = item.type;
+      }
+      // 如果没变化，就不跳转
+      if (JSON.stringify(query) === JSON.stringify(this.$route.query)) {
+        return;
+      }
+
+      this.$router.push({
+        path: this.$route.path,
+        query,
+      });
+      eventBus.emit("searchChange");
     },
     // 根据日期来过滤
     searchContentByDate(item) {
       this.selectedDateFilter = item.name;
+      const query = { ...this.$route.query };
+      if (item.type === "") {
+        // 删除时间参数
+        delete query.publish_begin_time;
+        delete query.publish_end_time;
+      } else {
+        const range = getTimeRange(item.type);
+        query.publish_begin_time = range.begin;
+        query.publish_end_time = range.end;
+      }
+      // 避免重复跳转
+      if (JSON.stringify(query) === JSON.stringify(this.$route.query)) {
+        return;
+      }
+
+      this.$router.push({
+        path: this.$route.path,
+        query,
+      });
+      eventBus.emit("searchChange");
     },
     // 换一换点击事件
     refreshHotSearch() {
@@ -370,10 +423,10 @@ a {
 .search-rotate {
   transform: rotate(180deg);
 }
-.second-hot-search{
+.second-hot-search {
   margin-top: 10px;
 }
-.one-search{
+.one-search {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -404,7 +457,7 @@ a {
   margin-left: 8px;
   transition: 0.3s;
 }
-.one-search:hover .hot-search-title{
+.one-search:hover .hot-search-title {
   color: #00aeec;
 }
 .hot-search-vivst-count {
@@ -413,7 +466,7 @@ a {
   font-size: 12px;
   margin-left: 6px;
 }
-.right-one-search{
+.right-one-search {
   display: flex;
   width: 20px;
   height: 20px;
@@ -426,7 +479,7 @@ a {
   cursor: pointer;
   margin-right: 10px;
 }
-.right-one-search span{
+.right-one-search span {
   font-size: 12px;
   line-height: 20px;
   color: #d95451;

@@ -600,10 +600,18 @@ export default {
     // 搜索事件
     handleSearch(){
       if(this.searchContent === ""){
-        alert(" 跳转 (无内容)"+this.placeholderSearchContent)
-      }else{
-        alert("跳转" + this.searchContent)
+        this.searchContent = this.placeholderSearchContent
       }
+      this.$router.push({
+        path:'/search/custom',
+        query:{
+          keyword: this.searchContent,
+          type: "content",  // 查询类型
+        }
+      })
+      eventBus.emit("searchChange")
+      eventBus.emit("resetFilter")
+      // window.location.reload();
       
     },
     // 根据内容查询点击事件(包含历史内容查询和热搜查询)
