@@ -32,15 +32,15 @@
         </div>
       </div>
       <!-- 第二层 搜索历史-->
-      <div class="search-second-floor" v-show="isFoucsInputSearchFlag  && searchContent===''">
+      <div class="search-second-floor" v-show="isFoucsInputSearchFlag  && searchContent==='' && historyList && historyList.length > 0">
         <div>
           <div>搜索历史</div>
           <div @click="handleDeleteAllHistory">清空</div>
         </div>
-        <div :class="{ expand: isExpandSearchFlag }" ref="historyWrapper">
-          <div class="search-history-content-box" @click="handleSearchByContent(item.content)" v-for="(item,index) in historyList" :key="index">
-            {{ item.content }}
-            <div class="close" @click.stop="handleDeleteByHistory('111')">
+        <div :class="{ expand: myTrueFlag }" ref="historyWrapper">
+          <div class="search-history-content-box" @click="handleSearchByContent(item)" v-for="(item,index) in historyList" :key="index">
+            {{ item }}
+            <div class="close" @click.stop="handleDeleteByHistory(item)">
               <svg class="close-icon" viewBox="0 0 1024 1024" width="14" height="14">
                 <path d="M512 64.303538c-247.25636 0-447.696462 200.440102-447.696462 447.696462
                 0 247.254314 200.440102 447.696462 447.696462 447.696462s447.696462-200.440102
@@ -57,7 +57,7 @@
             </div>
           </div>
         </div>
-        <div class="search-expand-button"  @click="isExpandSearchFlag = !isExpandSearchFlag">
+        <div class="search-expand-button"  v-show="false"  @click="isExpandSearchFlag = !isExpandSearchFlag">
           <div class="search-expand-text" >{{ isExpandSearchFlag? "收起" : "展开更多" }}</div>
           <svg class="fold-icon" :class="{ rotate: isExpandSearchFlag }" viewBox="0 0 12 12">
             <path fill-rule="evenodd" clip-rule="evenodd" d="M5.46967 9.17678C5.76256 9.46967 6.23744 9.46967 6.53033 9.17678L10.7286 4.97855
@@ -263,6 +263,8 @@
 import { logout } from "@/api/user";
 import { eventBus } from "@/mitt/eventBus";
 import { mapState } from "vuex";
+import { getClientIP , getDeviceInfo} from "@/utils/clientInfo.js"
+import { getUserSearchHistory , insertUserSearchHistory , deleteUserSearchHistory ,deleteAllHistory } from "@/api/userSearchHistory.js"
 export default {
   data() {
     return {
@@ -279,19 +281,7 @@ export default {
       searchContent:"",
       placeholderSearchContent:"瓦洛兰特",
       historyList:[
-        { id: 1, content: 'springcloud' },
-        { id: 2, content: 'vue' },
-        { id: 3, content: 'javascript' },
-        { id: 4, content: 'javascript' },
-        { id: 5, content: 'javascript' },
-        { id: 6, content: 'javascript' },
-        { id: 7, content: 'javascript' },
-        { id: 8, content: 'javascript' },
-        { id: 9, content: 'javascript' },
-        { id: 10, content: 'javascript' },
-        { id: 11, content: 'javascript' },
-        { id: 12, content: 'javascript' },
-        { id: 13, content: 'javascript' },
+        
       ],
       hotSearchList:[
         {
@@ -336,6 +326,7 @@ export default {
         },
       ],
       canExpand:false,
+      myTrueFlag:true,
       searchListByEs:[
         {
           id:1,
@@ -394,8 +385,12 @@ export default {
     if (this.$store.state.token) {
       this.isLogin = true;
     }
+    this.initData();
   },
   methods: {
+    initData(){
+      this.getUserSearchHistory();
+    },
     queryBlur() {
       this.isShowInput = false;
     },
@@ -598,10 +593,26 @@ export default {
       }
     },
     // 搜索事件
-    handleSearch(){
+    async handleSearch(){
       if(this.searchContent === ""){
         this.searchContent = this.placeholderSearchContent
       }
+      const userId = localStorage.getItem("userId");
+      if(userId !== null && userId !== ""){
+        const ip = await getClientIP();
+        const deviceInfo = getDeviceInfo();
+        const historyData = {
+          userId:userId,
+          keyword:this.searchContent,
+          source:deviceInfo.browser,
+          device:deviceInfo.browser,
+          ip:ip
+        }
+        await insertUserSearchHistory(historyData);
+        this.getUserSearchHistory();
+      }
+      
+      // 添加历史记录
       this.$router.push({
         path:'/search/custom',
         query:{
@@ -615,17 +626,68 @@ export default {
       
     },
     // 根据内容查询点击事件(包含历史内容查询和热搜查询)
-    handleSearchByContent(content){
-      alert("历史记录跳转 : " +  content);
+    async handleSearchByContent(content){
+      this.searchContent = content;
+      const userId = localStorage.getItem("userId");
+      if(userId !== null && userId !== ""){
+        const ip = await getClientIP();
+        const deviceInfo = getDeviceInfo();
+        const historyData = {
+          userId:userId,
+          keyword:this.searchContent,
+          source:deviceInfo.browser,
+          device:deviceInfo.browser,
+          ip:ip
+        }
+        await insertUserSearchHistory(historyData);
+        this.getUserSearchHistory();
+      }
+      
+      // 添加历史记录
+      this.$router.push({
+        path:'/search/custom',
+        query:{
+          keyword: this.searchContent,
+          type: "content",  // 查询类型
+        }
+      })
+      eventBus.emit("searchChange")
+      eventBus.emit("resetFilter")
+      // window.location.reload();
     },
-    handleDeleteByHistory(historyContent){
-      alert("删除浏览记录 : " + historyContent);
+    async handleDeleteByHistory(historyContent){
+      const userId = localStorage.getItem("userId");
+      if(userId!==null && userId !== ""){
+        const deleteData = {
+          userId:userId,
+          keyword:historyContent
+        }
+        await deleteUserSearchHistory(deleteData);
+        await this.getUserSearchHistory();
+      }
+      
     },
     // 删除所有的浏览记录
-    handleDeleteAllHistory(){
-      alert("删除所有的浏览记录")
+    async handleDeleteAllHistory(){
+      const userId = localStorage.getItem("userId");
+      if(userId!=null && userId !== ""){
+        const res = await deleteAllHistory(userId);
+        if(res.code === 200){
+          await this.getUserSearchHistory();
+        }
+      }
     },
-    
+    // 获取用户的搜索记录
+    async getUserSearchHistory(){
+      const userId = localStorage.getItem("userId");
+      if(userId !== null && userId !== ""){ 
+        const res = await getUserSearchHistory(userId);
+        if(res.code === 200){
+          this.historyList = res.data;
+        }
+      }
+      
+    }
   },
   mounted() {
     this.restaurants = this.loadAll();
@@ -938,6 +1000,7 @@ export default {
   display: flex;
   width: 100%;
   padding-top: 4px;
+  margin-bottom: 10px;
 }
 .search-first-floor-left{
   width: 380px;
