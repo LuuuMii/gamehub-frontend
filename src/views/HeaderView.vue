@@ -24,6 +24,7 @@
           <input type="text" 
           v-model="searchContent" 
           :placeholder="placeholderSearchContent" 
+          @input="handleOnInput"
           @keyup.enter="handleSearch"
           @focus="focusInputSearch"/>
         </div>
@@ -83,8 +84,8 @@
         <div class="search-content-box" 
         v-for="(item,index) in searchListByEs" 
         :key="index" 
-        v-html="item.highLightContent"
-        @click="handleSearchByContent(item.rawContent)">
+        v-html="item.keyword"
+        @click="handleSearchByContent(item.rawKeyword)">
           
         </div>
       </div>
@@ -264,6 +265,7 @@ import { logout } from "@/api/user";
 import { eventBus } from "@/mitt/eventBus";
 import { mapState } from "vuex";
 import { getClientIP , getDeviceInfo} from "@/utils/clientInfo.js"
+import { suggestSearch } from "@/api/searchKeywordPool.js"
 import { getUserSearchHistory , insertUserSearchHistory , deleteUserSearchHistory ,deleteAllHistory } from "@/api/userSearchHistory.js"
 export default {
   data() {
@@ -327,58 +329,9 @@ export default {
       ],
       canExpand:false,
       myTrueFlag:true,
-      searchListByEs:[
-        {
-          id:1,
-          rawContent:'valorant game best',
-          highLightContent:'valorant <em>game</em> best'
-        },
-        {
-          id:2,
-          rawContent:'valorant game best',
-          highLightContent:'valorant <em>game</em> best'
-        },
-        {
-          id:3,
-          rawContent:'valorant game best',
-          highLightContent:'valorant <em>game</em> best'
-        },
-        {
-          id:4,
-          rawContent:'valorant game best',
-          highLightContent:'valorant <em>game</em> best'
-        },
-        {
-          id:5,
-          rawContent:'valorant game best',
-          highLightContent:'valorant <em>game</em> best'
-        },
-        {
-          id:6,
-          rawContent:'valorant game best',
-          highLightContent:'valorant <em>game</em> best'
-        },
-        {
-          id:7,
-          rawContent:'valorant game best',
-          highLightContent:'valorant <em>game</em> best'
-        },
-        {
-          id:8,
-          rawContent:'valorant game best',
-          highLightContent:'valorant <em>game</em> best'
-        },
-        {
-          id:9,
-          rawContent:'valorant game best',
-          highLightContent:'valorant <em>game</em> best'
-        },
-        {
-          id:10,
-          rawContent:'valorant game best',
-          highLightContent:'valorant <em>game</em> best'
-        },
-      ],
+      searchListByEs:[],
+      inputTimer:null,
+      suggestList:[],
     };
   },
   created() {
@@ -687,7 +640,33 @@ export default {
         }
       }
       
-    }
+    },
+    // 输入框输入后的触发事件
+    handleOnInput() {
+      // 清除上一次定时器
+      if (this.inputTimer) {
+        clearTimeout(this.inputTimer);
+      }
+
+      // 300ms 后执行
+      this.inputTimer = setTimeout(async () => {
+        if (!this.searchContent) {
+          this.suggestList = [];
+          return;
+        }
+
+        try {
+          // 调用后端接口
+          const searchData = {
+            keyword: this.searchContent
+          }
+          const res = await suggestSearch(searchData);
+          this.searchListByEs = res.data;
+        } catch (err) {
+          console.error("查询联想失败", err);
+        }
+      }, 300);
+    },
   },
   mounted() {
     this.restaurants = this.loadAll();
