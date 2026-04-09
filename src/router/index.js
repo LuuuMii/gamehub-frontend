@@ -20,6 +20,7 @@ import WatchedColumnView from '../views/user-space/sub/WatchedColumnView.vue'
 import ActivityView from '../views/user-space/sub/ActivityView.vue'
 import SearchView from "@/views/search-view/SearchView.vue"
 import CustomView from "@/views/search-view/sub/CustomView.vue"
+import VideoView from '@/views/video/VideoView.vue'
 
 Vue.use(VueRouter)
 
@@ -52,6 +53,12 @@ const routes = [
     path: '/create/editor/:articleId',
     name: 'editorContinue',
     component: () => import('@/views/editor/EditorView.vue'),
+    props: true,
+  },
+  {
+    path: '/video/:videoId',
+    name: 'videoView',
+    component: VideoView,
     props: true,
   },
   {

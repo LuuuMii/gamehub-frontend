@@ -12,7 +12,7 @@
           <li><router-link to="/about">游戏</router-link></li>
           <li><router-link to="/post/24">论坛</router-link></li>
           <li><router-link to="/userspace/1">关于</router-link></li>
-          <li><router-link to="/create/editor">编辑</router-link></li>
+          <li><router-link to="/video/1">视频</router-link></li>
           <li><router-link to="/search/custom">搜索</router-link></li>
         </ul>
       </div>
