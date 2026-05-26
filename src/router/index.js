@@ -21,6 +21,7 @@ import ActivityView from '../views/user-space/sub/ActivityView.vue'
 import SearchView from "@/views/search-view/SearchView.vue"
 import CustomView from "@/views/search-view/sub/CustomView.vue"
 import VideoView from '@/views/video/VideoView.vue'
+import VideoCreateView from '@/views/video-create/VideoCreateView.vue'
 
 Vue.use(VueRouter)
 
@@ -66,6 +67,19 @@ const routes = [
     name: 'editor',
     component: () => import('@/views/editor/EditorView.vue'),
     props: true,
+  },
+  {
+    path:'/create/video',
+    name:'createVideo',
+    component: VideoCreateView,
+    props: true,
+    children:[
+      {
+        path:'upload',
+        name:'uploadVideoView',
+        component: () => import('@/views/video-create/sub/UploadVideoView.vue'),
+      },
+    ]
   },
   {
     path: '/create/success',

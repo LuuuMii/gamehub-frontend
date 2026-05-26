@@ -9,7 +9,7 @@
               ><i class="el-icon-house"></i>&nbsp;首页</router-link
             >
           </li>
-          <li><router-link to="/about">游戏</router-link></li>
+          <li><router-link to="/create/video/upload">创作</router-link></li>
           <li><router-link to="/post/24">论坛</router-link></li>
           <li><router-link to="/userspace/1">关于</router-link></li>
           <li><router-link to="/video/1">视频</router-link></li>

@@ -303,6 +303,7 @@ export default {
   border-radius: 6px;
   box-sizing: border-box;
 }
+
 :deep(.artplayer-plugin-danmuku){
   display: none!important;
 }

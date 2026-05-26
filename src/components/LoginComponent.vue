@@ -16,7 +16,7 @@
           </div>
         </div>
         <div class="login-scan-font">
-          请使用&nbsp;<span>哔哩哔哩客户端</span>
+          请使用&nbsp;<span>嘻哩嘻哩客户端</span>
         </div>
         <div class="login-scan-font">扫码登录或下载APP</div>
       </div>
@@ -145,7 +145,7 @@
         <div class="login-close-btn" @click="closeLogin"></div>
       </div>
       <div class="friendly-tips">
-        <div>未注册过哔哩哔哩的手机号，我们将自动帮你注册账号</div>
+        <div>未注册过嘻哩嘻哩的手机号，我们将自动帮你注册账号</div>
         <div>
           <span
             >登录活完成注册即代表你同意

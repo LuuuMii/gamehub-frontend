@@ -18,4 +18,33 @@ export function uploadImgByUrl(data) {
     return request.post('/oss/uploadImgByUrl', data)
 }
 
+export function initUpload(objectName){
+    return request.post("/oss/upload/init",null,
+        {
+            params:{
+                objectName
+            }
+        }
+    )
+}
 
+export function uploadChunk(file,objectName,uploadId,partNumber,totalChunks){
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("objectName", objectName);
+    formData.append("uploadId", uploadId);
+    formData.append("partNumber", partNumber);
+    formData.append("totalChunks", totalChunks);
+    return request.post("/oss/upload/chunk",formData)
+}
+
+export function completeUpload(objectName,uploadId){
+    return request.post("/oss/upload/complete",null,
+        {
+            params:{
+                objectName,
+                uploadId
+            }
+        }
+    )
+}

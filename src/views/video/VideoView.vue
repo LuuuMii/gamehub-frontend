@@ -1,8 +1,8 @@
-<template>
+﻿<template>
   <div class="myContainer">
     <div class="left-container">
       <div class="video-title">
-        高仿B站 vue3项目实战 easylive 计算机毕业设计 简历项目 项目经验（已完结）
+        高仿B站 我的第一个测试视频
       </div>
       <div class="video-detail">
         <div class="view-item">
@@ -84,28 +84,522 @@
       <div class="video">
         <VideoPlayer :url="videoUrl" :danmuku="danmukuList" />
       </div>
-      <div>
-        123123
+      <!-- 视频操作  点赞收藏等 -->
+      <div class="video-toolbar-container">
+        <div class="video-toolbar-left-main">
+          <!-- 点赞 -->
+          <div class="video-toolbar-left-item">
+            <div>
+              <svg
+                width="36"
+                height="36"
+                viewBox="0 0 36 36"
+                xmlns="http://www.w3.org/2000/svg"
+                class="video-like-icon video-toolbar-item-icon"
+              >
+                <path
+                  fill-rule="evenodd"
+                  clip-rule="evenodd"
+                  d="M9.77234 30.8573V11.7471H7.54573C5.50932 11.7471 3.85742 13.3931 3.85742 15.425V27.1794C3.85742 29.2112 5.50932 30.8573 7.54573 30.8573H9.77234ZM11.9902 30.8573V11.7054C14.9897 10.627 16.6942 7.8853 17.1055 3.33591C17.2666 1.55463 18.9633 0.814421 20.5803 1.59505C22.1847 2.36964 23.243 4.32583 23.243 6.93947C23.243 8.50265 23.0478 10.1054 22.6582 11.7471H29.7324C31.7739 11.7471 33.4289 13.402 33.4289 15.4435C33.4289 15.7416 33.3928 16.0386 33.3215 16.328L30.9883 25.7957C30.2558 28.7683 27.5894 30.8573 24.528 30.8573H11.9911H11.9902Z"
+                  fill="currentColor"
+                ></path>
+              </svg>
+            </div>
+            <div class="video-toolbar-item-text">2613</div>
+          </div>
+          <!-- 投币 -->
+          <div class="video-toolbar-left-item">
+            <div>
+              <svg
+                width="28"
+                height="28"
+                viewBox="0 0 28 28"
+                xmlns="http://www.w3.org/2000/svg"
+                class="video-coin-icon video-toolbar-item-icon"
+                data-v-bb2825e0=""
+              >
+                <path
+                  fill-rule="evenodd"
+                  clip-rule="evenodd"
+                  d="M14.045 25.5454C7.69377 25.5454 2.54504 20.3967 2.54504 14.0454C2.54504 7.69413 7.69377 2.54541 14.045 2.54541C20.3963 2.54541 25.545 7.69413 25.545 14.0454C25.545 17.0954 24.3334 20.0205 22.1768 22.1771C20.0201 24.3338 17.095 25.5454 14.045 25.5454ZM9.66202 6.81624H18.2761C18.825 6.81624 19.27 7.22183 19.27 7.72216C19.27 8.22248 18.825 8.62807 18.2761 8.62807H14.95V10.2903C17.989 10.4444 20.3766 12.9487 20.3855 15.9916V17.1995C20.3854 17.6997 19.9799 18.1052 19.4796 18.1052C18.9793 18.1052 18.5738 17.6997 18.5737 17.1995V15.9916C18.5667 13.9478 16.9882 12.2535 14.95 12.1022V20.5574C14.95 21.0577 14.5444 21.4633 14.0441 21.4633C13.5437 21.4633 13.1382 21.0577 13.1382 20.5574V12.1022C11.1 12.2535 9.52148 13.9478 9.51448 15.9916V17.1995C9.5144 17.6997 9.10883 18.1052 8.60856 18.1052C8.1083 18.1052 7.70273 17.6997 7.70265 17.1995V15.9916C7.71158 12.9487 10.0992 10.4444 13.1382 10.2903V8.62807H9.66202C9.11309 8.62807 8.66809 8.22248 8.66809 7.72216C8.66809 7.22183 9.11309 6.81624 9.66202 6.81624Z"
+                  fill="currentColor"
+                ></path>
+              </svg>
+            </div>
+            <div class="video-toolbar-item-text">920</div>
+          </div>
+          <!-- 收藏 -->
+          <div class="video-toolbar-left-item">
+            <div>
+              <svg
+                width="28"
+                height="28"
+                viewBox="0 0 28 28"
+                xmlns="http://www.w3.org/2000/svg"
+                class="video-fav-icon video-toolbar-item-icon"
+                data-v-9e4050e4=""
+              >
+                <path
+                  fill-rule="evenodd"
+                  clip-rule="evenodd"
+                  d="M19.8071 9.26152C18.7438 9.09915 17.7624 8.36846 17.3534 7.39421L15.4723 3.4972C14.8998 2.1982 13.1004 2.1982 12.4461 3.4972L10.6468 7.39421C10.1561 8.36846 9.25639 9.09915 8.19315 9.26152L3.94016 9.91102C2.63155 10.0734 2.05904 11.6972 3.04049 12.6714L6.23023 15.9189C6.96632 16.6496 7.29348 17.705 7.1299 18.7605L6.39381 23.307C6.14844 24.6872 7.62063 25.6614 8.84745 25.0119L12.4461 23.0634C13.4276 22.4951 14.6544 22.4951 15.6359 23.0634L19.2345 25.0119C20.4614 25.6614 21.8518 24.6872 21.6882 23.307L20.8703 18.7605C20.7051 17.705 21.0339 16.6496 21.77 15.9189L24.9597 12.6714C25.9412 11.6972 25.3687 10.0734 24.06 9.91102L19.8071 9.26152Z"
+                  fill="currentColor"
+                ></path>
+              </svg>
+            </div>
+            <div class="video-toolbar-item-text">792</div>
+          </div>
+          <!-- 转发 -->
+          <div class="video-toolbar-left-item">
+            <div>
+              <svg
+                data-v-7e2241dc=""
+                width="28"
+                height="28"
+                viewBox="0 0 28 28"
+                xmlns="http://www.w3.org/2000/svg"
+                class="video-share-icon video-toolbar-item-icon"
+              >
+                <path
+                  d="M12.6058 10.3326V5.44359C12.6058 4.64632 13.2718 4 14.0934 4C14.4423 4 14.78 4.11895 15.0476 4.33606L25.3847 12.7221C26.112 13.3121 26.2087 14.3626 25.6007 15.0684C25.5352 15.1443 25.463 15.2144 25.3847 15.2779L15.0476 23.6639C14.4173 24.1753 13.4791 24.094 12.9521 23.4823C12.7283 23.2226 12.6058 22.8949 12.6058 22.5564V18.053C7.59502 18.053 5.37116 19.9116 2.57197 23.5251C2.47607 23.6489 2.00031 23.7769 2.00031 23.2122C2.00031 16.2165 3.90102 10.3326 12.6058 10.3326Z"
+                  fill="currentColor"
+                ></path>
+              </svg>
+            </div>
+            <div class="video-toolbar-item-text">418</div>
+          </div>
+        </div>
+        <div class="video-toolbar-right-main">
+          <!-- 稿件举报 -->
+          <div class="video-toolbar-right-item">
+            <div>
+              <svg
+                data-v-34aec60a=""
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="currentColor"
+                class="video-complaint-icon video-toolbar-item-icon"
+              >
+                <path
+                  fill-rule="evenodd"
+                  clip-rule="evenodd"
+                  d="M9.40194 3.75C10.5566 1.74999 13.4434 1.75001 14.5981 3.75L21.7428 16.125C22.8975 18.125 21.4541 20.625 19.1447 20.625H4.8553C2.5459 20.625 1.10253 18.125 2.25723 16.125L9.40194 3.75ZM12.866 4.75C12.4811 4.08333 11.5189 4.08333 11.134 4.75L3.98928 17.125C3.60438 17.7917 4.08551 18.625 4.8553 18.625H19.1447C19.9145 18.625 20.3957 17.7917 20.0108 17.125L12.866 4.75Z"
+                ></path>
+                <path
+                  fill-rule="evenodd"
+                  clip-rule="evenodd"
+                  d="M12 8C12.4142 8 12.75 8.33579 12.75 8.75V13.75C12.75 14.1642 12.4142 14.5 12 14.5C11.5858 14.5 11.25 14.1642 11.25 13.75V8.75C11.25 8.33579 11.5858 8 12 8Z"
+                ></path>
+                <path
+                  fill-rule="evenodd"
+                  clip-rule="evenodd"
+                  d="M12 15.5C12.4142 15.5 12.75 15.8358 12.75 16.25V16.75C12.75 17.1642 12.4142 17.5 12 17.5C11.5858 17.5 11.25 17.1642 11.25 16.75V16.25C11.25 15.8358 11.5858 15.5 12 15.5Z"
+                ></path>
+              </svg>
+            </div>
+            <div class="video-toolbar-item-text2">稿件举报</div>
+          </div>
+          <!-- 记笔记 -->
+          <div class="video-toolbar-right-item">
+            <div>
+              <svg
+                data-v-47b39fc4=""
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="currentColor"
+                class="video-note-icon video-toolbar-item-icon"
+              >
+                <path
+                  fill-rule="evenodd"
+                  clip-rule="evenodd"
+                  d="M6.75 10C6.75 9.58579 7.08579 9.25 7.5 9.25H16.5C16.9142 9.25 17.25 9.58579 17.25 10C17.25 10.4142 16.9142 10.75 16.5 10.75H7.5C7.08579 10.75 6.75 10.4142 6.75 10Z"
+                ></path>
+                <path
+                  fill-rule="evenodd"
+                  clip-rule="evenodd"
+                  d="M6.75 14C6.75 13.5858 7.08579 13.25 7.5 13.25H13C13.4142 13.25 13.75 13.5858 13.75 14C13.75 14.4142 13.4142 14.75 13 14.75H7.5C7.08579 14.75 6.75 14.4142 6.75 14Z"
+                ></path>
+                <path
+                  fill-rule="evenodd"
+                  clip-rule="evenodd"
+                  d="M12 5.25C9.48998 5.25 7.29811 5.3777 5.75109 5.50315C4.79223 5.58091 4.05407 6.31053 3.96899 7.25687C3.85555 8.51874 3.75 10.1822 3.75 12C3.75 13.8178 3.85555 15.4813 3.96899 16.7431C4.05408 17.6895 4.79214 18.4191 5.75095 18.4968C7.17292 18.6122 9.14013 18.7294 11.3987 18.7476C11.951 18.752 12.3951 19.2033 12.3906 19.7556C12.3862 20.3079 11.9349 20.752 11.3826 20.7475C9.06584 20.7289 7.04905 20.6087 5.58929 20.4903C3.67182 20.3348 2.15034 18.8499 1.97703 16.9222C1.8597 15.6172 1.75 13.892 1.75 12C1.75 10.108 1.8597 8.38283 1.97703 7.07779C2.15034 5.15 3.67203 3.66518 5.58944 3.50969C7.17721 3.38094 9.42438 3.25 12 3.25C14.5759 3.25 16.8232 3.38096 18.411 3.50973C20.3281 3.6652 21.8497 5.14946 22.0231 7.07716C22.1127 8.07392 22.1977 9.31512 22.233 10.6888C22.2471 11.2409 21.811 11.6999 21.2589 11.7141C20.7068 11.7282 20.2478 11.2921 20.2336 10.74C20.1997 9.41683 20.1177 8.21901 20.0311 7.25626C19.946 6.31026 19.2081 5.58094 18.2494 5.50319C16.7023 5.37772 14.5103 5.25 12 5.25Z"
+                ></path>
+                <path
+                  fill-rule="evenodd"
+                  clip-rule="evenodd"
+                  d="M18.2557 13.3102C19.0368 12.5292 20.3031 12.5292 21.0841 13.3102L22.4983 14.7244C23.2794 15.5055 23.2794 16.7718 22.4983 17.5528L18.5486 21.5026C18.1735 21.8777 17.6648 22.0884 17.1344 22.0884L15.0702 22.0884C14.3246 22.0884 13.7202 21.484 13.7202 20.7384V18.6742C13.7202 18.1437 13.9309 17.635 14.306 17.26L18.2557 13.3102ZM21.0841 16.1386L19.6699 14.7244L15.7202 18.6742L15.7202 20.0884L17.1344 20.0884L21.0841 16.1386Z"
+                ></path>
+              </svg>
+            </div>
+            <div class="video-toolbar-item-text2">记笔记</div>
+          </div>
+          <!-- 更多操作 -->
+          <div class="video-toolbar-right-item">
+            <div>
+              <svg
+                data-v-bce1abe6=""
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+                class="video-tool-more-icon van-popover__reference"
+                aria-describedby="van-popover-9546"
+                tabindex="0"
+              >
+                <path
+                  fill-rule="evenodd"
+                  clip-rule="evenodd"
+                  d="M13.7484 5.49841C13.7484 6.46404 12.9656 7.24683 11.9999 7.24683C11.0343 7.24683 10.2515 6.46404 10.2515 5.49841C10.2515 4.53279 11.0343 3.75 11.9999 3.75C12.9656 3.75 13.7484 4.53279 13.7484 5.49841ZM13.7484 18.4985C13.7484 19.4641 12.9656 20.2469 11.9999 20.2469C11.0343 20.2469 10.2515 19.4641 10.2515 18.4985C10.2515 17.5328 11.0343 16.75 11.9999 16.75C12.9656 16.75 13.7484 17.5328 13.7484 18.4985ZM11.9999 13.7485C12.9656 13.7485 13.7484 12.9656 13.7484 12C13.7484 11.0343 12.9656 10.2515 11.9999 10.2515C11.0343 10.2515 10.2515 11.0343 10.2515 12C10.2515 12.9656 11.0343 13.7485 11.9999 13.7485Z"
+                  fill="currentColor"
+                ></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <!-- 视频简介 -->
+      <div class="desc-wrapper">
+        <div ref="desc" class="basic-desc-info" :class="{ expand: isExpand }">
+          <span class="desc-info-text">
+            {{ description }}
+          </span>
+        </div>
+
+        <div v-if="showToggle" class="toggle-btn" @click="toggle">
+          {{ isExpand ? "收起" : "展开" }}
+        </div>
+      </div>
+      <!-- 视频标签 -->
+      <div class="video-tag-container">
+        <div class="tag-panel">
+          <div class="tag" v-for="item in 8" :key="item">
+            <a href="/">王者荣耀世界上线</a>
+          </div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <!-- 评论区 -->
+      <div class="comment-container">
+        <VideoCommentView></VideoCommentView>
       </div>
     </div>
-    <div class="right-container">you</div>
+    <div class="right-container">
+      <div class="creator-card">
+        <a href="/" class="creator-avatar-link">
+          <img
+            class="creator-avatar"
+            src="@/assets/avatar.jpg"
+            alt="UP主头像"
+          />
+        </a>
+        <div class="creator-main">
+          <div class="creator-top-row">
+            <a href="/" class="creator-name">我是坏坏0v0</a>
+            <a href="/" class="send-msg">发消息</a>
+          </div>
+          <div class="creator-desc">
+            深蓝大王就是我(°▽°)主页动态置顶有裙aaaaaaaaaaaaaaaaaaaaaa
+          </div>
+          <div class="creator-action-row">
+            <button type="button" class="charge-btn">
+              <span class="charge-icon">⚡</span>
+              充电
+            </button>
+            <button type="button" class="follow-btn">+ 关注 5151</button>
+          </div>
+        </div>
+      </div>
+      <!-- 弹幕列表 -->
+      <div class="collapse-wrap">
+        <div class="collapse-header" @click="toggleDanmakuPanel">
+          <div class="collapse-header-left">
+            <span class="collapse-title">弹幕列表</span>
+            <span class="collapse-dot">⋮</span>
+          </div>
+          <span class="collapse-arrow" :class="{ open: isDanmakuOpen }">⌃</span>
+        </div>
+
+        <div v-show="isDanmakuOpen" class="collapse-content">
+          <div class="danmaku-table-header">
+            <div class="col-time">时间</div>
+            <div class="col-content">弹幕内容</div>
+            <div class="col-send-time">发送时间</div>
+          </div>
+
+          <div class="danmaku-list-scroll">
+            <div
+              v-for="(item, index) in danmakuHistory"
+              :key="index"
+              class="danmaku-row"
+            >
+              <div class="col-time">{{ item.time }}</div>
+              <div class="col-content">{{ item.content }}</div>
+              <div class="col-send-time row-send-time">
+                <span class="send-time-text">{{ item.sendTime }}</span>
+                <div class="row-actions">
+                  <button type="button" class="row-action-btn">举报</button>
+                  <button type="button" class="row-action-btn">屏蔽用户</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button type="button" class="history-btn">查看历史弹幕</button>
+        </div>
+      </div>
+
+      <!-- 接下来播放 -->
+      <div class="recommend-list">
+        <div class="recommend-head">
+          <div class="recommend-title">接下来播放</div>
+          <div class="autoplay-wrap">
+            <span class="autoplay-text">自动连播</span>
+            <button
+              type="button"
+              class="autoplay-switch"
+              :class="{ on: isAutoPlay }"
+              @click="isAutoPlay = !isAutoPlay"
+            >
+              <span class="switch-dot"></span>
+            </button>
+          </div>
+        </div>
+
+        <div class="recommend-items">
+          <div
+            v-for="(item, index) in displayedRecommendVideos"
+            :key="index"
+            class="recommend-item"
+          >
+            <a href="/" class="recommend-cover-link">
+              <img
+                class="recommend-cover"
+                src="@/assets/avatar.jpg"
+                alt="视频封面"
+              />
+              <span class="recommend-duration">{{ item.duration }}</span>
+            </a>
+            <div class="recommend-main">
+              <a href="/" class="recommend-video-title">{{ item.title }}</a>
+              <div class="recommend-author-row">
+                <svg
+                  style="width: 18px; height: 18px"
+                  xmlns="http://www.w3.org/2000/svg"
+                  xmlns:xlink="http://www.w3.org/1999/xlink"
+                  viewBox="0 0 18 18"
+                  width="18"
+                  height="18"
+                  class="up-icon"
+                >
+                  <path
+                    d="M4.612500000000001 6.186037499999999C4.92315 6.186037499999999 5.175000000000001 6.437872500000001 5.175000000000001 6.748537499999999L5.175000000000001 9.580575C5.175000000000001 10.191075000000001 5.66991 10.686 6.280425000000001 10.686C6.8909325 10.686 7.38585 10.191075000000001 7.38585 9.580575L7.38585 6.748537499999999C7.38585 6.437872500000001 7.637700000000001 6.186037499999999 7.94835 6.186037499999999C8.259 6.186037499999999 8.51085 6.437872500000001 8.51085 6.748537499999999L8.51085 9.580575C8.51085 10.8124125 7.512262499999999 11.811 6.280425000000001 11.811C5.048595000000001 11.811 4.050000000000001 10.8124125 4.050000000000001 9.580575L4.050000000000001 6.748537499999999C4.050000000000001 6.437872500000001 4.3018350000000005 6.186037499999999 4.612500000000001 6.186037499999999z"
+                    fill="currentColor"
+                  ></path>
+                  <path
+                    d="M9.48915 6.748537499999999C9.48915 6.437872500000001 9.7409625 6.186037499999999 10.05165 6.186037499999999L11.79375 6.186037499999999C12.984637500000002 6.186037499999999 13.950000000000001 7.151415 13.950000000000001 8.34225C13.950000000000001 9.5331375 12.984637500000002 10.4985 11.79375 10.4985L10.61415 10.4985L10.61415 11.2485C10.61415 11.55915 10.3623 11.811 10.05165 11.811C9.7409625 11.811 9.48915 11.55915 9.48915 11.2485L9.48915 6.748537499999999zM10.61415 9.3735L11.79375 9.3735C12.3633 9.3735 12.825000000000001 8.9118 12.825000000000001 8.34225C12.825000000000001 7.7727375 12.3633 7.31103 11.79375 7.31103L10.61415 7.31103L10.61415 9.3735z"
+                    fill="currentColor"
+                  ></path>
+                  <path
+                    d="M9 3.7485375000000003C7.111335 3.7485375000000003 5.46225 3.84462 4.2981675 3.939015C3.4891575 4.0046175 2.8620825 4.6226400000000005 2.79 5.424405C2.7045525 6.37485 2.625 7.6282499999999995 2.625 8.9985C2.625 10.368825000000001 2.7045525 11.622225 2.79 12.5726625C2.8620825 13.374412500000002 3.4891575 13.992450000000002 4.2981675 14.058074999999999C5.46225 14.152425000000001 7.111335 14.2485 9 14.2485C10.888874999999999 14.2485 12.538050000000002 14.152425000000001 13.702200000000001 14.058037500000001C14.511074999999998 13.9924125 15.138000000000002 13.3746 15.210075 12.573037500000002C15.295499999999999 11.622975 15.375 10.3698375 15.375 8.9985C15.375 7.627237500000001 15.295499999999999 6.3740775 15.210075 5.4240375C15.138000000000002 4.622475 14.511074999999998 4.00464 13.702200000000001 3.9390374999999995C12.538050000000002 3.844635 10.888874999999999 3.7485375000000003 9 3.7485375000000003zM4.2072375 2.8176975C5.39424 2.7214425 7.074434999999999 2.6235375000000003 9 2.6235375000000003C10.925775 2.6235375000000003 12.606075 2.7214575 13.793099999999999 2.81772C15.141074999999999 2.92704 16.208849999999998 3.9695849999999995 16.330575 5.323297500000001C16.418174999999998 6.297675 16.5 7.585537500000001 16.5 8.9985C16.5 10.4115375 16.418174999999998 11.6994 16.330575 12.6738C16.208849999999998 14.027474999999999 15.141074999999999 15.0700125 13.793099999999999 15.1793625C12.606075 15.275625 10.925775 15.3735 9 15.3735C7.074434999999999 15.3735 5.39424 15.275625 4.2072375 15.179400000000001C2.859045 15.070049999999998 1.7912325 14.027212500000001 1.6695225000000002 12.673425C1.5818849999999998 11.69865 1.5 10.4106 1.5 8.9985C1.5 7.586475 1.5818849999999998 6.2984025 1.6695225000000002 5.3236725C1.7912325 3.96984 2.859045 2.9270175000000003 4.2072375 2.8176975z"
+                    fill="currentColor"
+                  ></path>
+                </svg>
+                <a href="/" class="recommend-author">{{ item.author }}</a>
+              </div>
+              <div class="recommend-meta">
+                <div class="recommend-meta-item">
+                  <svg
+                    class="play"
+                    style="width: 18px; height: 18px"
+                    xmlns="http://www.w3.org/2000/svg"
+                    xmlns:xlink="http://www.w3.org/1999/xlink"
+                    viewBox="0 0 18 18"
+                    width="18"
+                    height="18"
+                  >
+                    <path
+                      d="M9 3.7485375000000003C7.111335 3.7485375000000003 5.46225 3.84462 4.2981675 3.939015C3.4891575 4.0046175 2.8620825 4.6226400000000005 2.79 5.424405C2.7045525 6.37485 2.625 7.6282499999999995 2.625 8.9985C2.625 10.368825000000001 2.7045525 11.622225 2.79 12.5726625C2.8620825 13.374412500000002 3.4891575 13.992450000000002 4.2981675 14.058074999999999C5.46225 14.152425000000001 7.111335 14.2485 9 14.2485C10.888874999999999 14.2485 12.538050000000002 14.152425000000001 13.702200000000001 14.058037500000001C14.511074999999998 13.9924125 15.138000000000002 13.3746 15.210075 12.573037500000002C15.295499999999999 11.622975 15.375 10.3698375 15.375 8.9985C15.375 7.627237500000001 15.295499999999999 6.3740775 15.210075 5.4240375C15.138000000000002 4.622475 14.511074999999998 4.00464 13.702200000000001 3.9390374999999995C12.538050000000002 3.844635 10.888874999999999 3.7485375000000003 9 3.7485375000000003zM4.2072375 2.8176975C5.39424 2.7214425 7.074434999999999 2.6235375000000003 9 2.6235375000000003C10.925775 2.6235375000000003 12.606075 2.7214575 13.793099999999999 2.81772C15.141074999999999 2.92704 16.208849999999998 3.9695849999999995 16.330575 5.323297500000001C16.418174999999998 6.297675 16.5 7.585537500000001 16.5 8.9985C16.5 10.4115375 16.418174999999998 11.6994 16.330575 12.6738C16.208849999999998 14.027474999999999 15.141074999999999 15.0700125 13.793099999999999 15.1793625C12.606075 15.275625 10.925775 15.3735 9 15.3735C7.074434999999999 15.3735 5.39424 15.275625 4.2072375 15.179400000000001C2.859045 15.070049999999998 1.7912325 14.027212500000001 1.6695225000000002 12.673425C1.5818849999999998 11.69865 1.5 10.4106 1.5 8.9985C1.5 7.586475 1.5818849999999998 6.2984025 1.6695225000000002 5.3236725C1.7912325 3.96984 2.859045 2.9270175000000003 4.2072375 2.8176975z"
+                      fill="currentColor"
+                    ></path>
+                    <path
+                      d="M11.035350000000001 8.2265625C11.6307375 8.570325 11.6307375 9.42975 11.0353125 9.773475L8.652149999999999 11.149425C8.0567625 11.49315 7.3125 11.063475 7.3125075 10.37595L7.3125075 7.624124999999999C7.3125075 6.936607500000001 8.0567625 6.5069025 8.652149999999999 6.850664999999999L11.035350000000001 8.2265625z"
+                      fill="currentColor"
+                    ></path>
+                  </svg>
+                  <div>{{ item.play }}</div>
+                </div>
+                <div class="recommend-meta-item">
+                  <svg
+                    class="dm"
+                    style="width: 18px; height: 18px"
+                    xmlns="http://www.w3.org/2000/svg"
+                    xmlns:xlink="http://www.w3.org/1999/xlink"
+                    viewBox="0 0 18 18"
+                    width="18"
+                    height="18"
+                  >
+                    <path
+                      d="M9 3.7485375000000003C7.111335 3.7485375000000003 5.46225 3.84462 4.2981675 3.939015C3.4891575 4.0046175 2.8620825 4.6226400000000005 2.79 5.424405C2.7045525 6.37485 2.625 7.6282499999999995 2.625 8.9985C2.625 10.368825000000001 2.7045525 11.622225 2.79 12.5726625C2.8620825 13.374412500000002 3.4891575 13.992450000000002 4.2981675 14.058074999999999C5.46225 14.152425000000001 7.111335 14.2485 9 14.2485C10.888874999999999 14.2485 12.538050000000002 14.152425000000001 13.702200000000001 14.058037500000001C14.511074999999998 13.9924125 15.138000000000002 13.3746 15.210075 12.573037500000002C15.295499999999999 11.622975 15.375 10.3698375 15.375 8.9985C15.375 7.627237500000001 15.295499999999999 6.3740775 15.210075 5.4240375C15.138000000000002 4.622475 14.511074999999998 4.00464 13.702200000000001 3.9390374999999995C12.538050000000002 3.844635 10.888874999999999 3.7485375000000003 9 3.7485375000000003zM4.2072375 2.8176975C5.39424 2.7214425 7.074434999999999 2.6235375000000003 9 2.6235375000000003C10.925775 2.6235375000000003 12.606075 2.7214575 13.793099999999999 2.81772C15.141074999999999 2.92704 16.208849999999998 3.9695849999999995 16.330575 5.323297500000001C16.418174999999998 6.297675 16.5 7.585537500000001 16.5 8.9985C16.5 10.4115375 16.418174999999998 11.6994 16.330575 12.6738C16.208849999999998 14.027474999999999 15.141074999999999 15.0700125 13.793099999999999 15.1793625C12.606075 15.275625 10.925775 15.3735 9 15.3735C7.074434999999999 15.3735 5.39424 15.275625 4.2072375 15.179400000000001C2.859045 15.070049999999998 1.7912325 14.027212500000001 1.6695225000000002 12.673425C1.5818849999999998 11.69865 1.5 10.4106 1.5 8.9985C1.5 7.586475 1.5818849999999998 6.2984025 1.6695225000000002 5.3236725C1.7912325 3.96984 2.859045 2.9270175000000003 4.2072375 2.8176975z"
+                      fill="currentColor"
+                    ></path>
+                    <path
+                      d="M11.90625 8.0625L7.40625 8.0625C7.0955924999999995 8.0625 6.84375 7.810649999999999 6.84375 7.5C6.84375 7.1893424999999995 7.0955924999999995 6.9375 7.40625 6.9375L11.90625 6.9375C12.2169 6.9375 12.46875 7.1893424999999995 12.46875 7.5C12.46875 7.810649999999999 12.2169 8.0625 11.90625 8.0625z"
+                      fill="currentColor"
+                    ></path>
+                    <path
+                      d="M13.03125 11.0625L8.53125 11.0625C8.220600000000001 11.0625 7.96875 10.810649999999999 7.96875 10.5C7.96875 10.189350000000001 8.220600000000001 9.9375 8.53125 9.9375L13.03125 9.9375C13.3419 9.9375 13.59375 10.189350000000001 13.59375 10.5C13.59375 10.810649999999999 13.3419 11.0625 13.03125 11.0625z"
+                      fill="currentColor"
+                    ></path>
+                    <path
+                      d="M5.90625 7.5C5.90625 7.810649999999999 5.6544075 8.0625 5.34375 8.0625L4.96875 8.0625C4.6580925 8.0625 4.40625 7.810649999999999 4.40625 7.5C4.40625 7.1893424999999995 4.6580925 6.9375 4.96875 6.9375L5.34375 6.9375C5.6544075 6.9375 5.90625 7.1893424999999995 5.90625 7.5z"
+                      fill="currentColor"
+                    ></path>
+                    <path
+                      d="M7.03125 10.5C7.03125 10.810649999999999 6.7794075000000005 11.0625 6.46875 11.0625L6.09375 11.0625C5.7830925 11.0625 5.53125 10.810649999999999 5.53125 10.5C5.53125 10.189350000000001 5.7830925 9.9375 6.09375 9.9375L6.46875 9.9375C6.7794075000000005 9.9375 7.03125 10.189350000000001 7.03125 10.5z"
+                      fill="currentColor"
+                    ></path>
+                  </svg>
+                  <div>{{ item.danmaku }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="recommend-expand-btn"
+          @click="isRecommendExpanded = !isRecommendExpanded"
+        >
+          {{ isRecommendExpanded ? "收起" : "展开" }}
+        </button>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 import VideoPlayer from "@/components/VideoPlayer.vue";
-import vctVideo from "@/assets/video/vct.mp4";
+import VideoCommentView from "./VideoCommentView.vue";
 export default {
   name: "VideoView",
-  components:{ VideoPlayer },
+  components: { VideoPlayer, VideoCommentView },
   data() {
     return {
-      videoUrl: vctVideo,
-      danmukuList:[
+      videoUrl: 'https://cmc-blog.oss-cn-hangzhou.aliyuncs.com/video/09cf4348-ffc0-4473-9bac-cb1c11c7e2e4_vct.mp4',
+      danmukuList: [
         { time: 1, type: 0, color: "#ffffff", text: "Hello 弹幕！" },
-        { time: 3, type: 0, color: "#ff0000", text: "红色弹幕" }
+        { time: 3, type: 0, color: "#ff0000", text: "红色弹幕" },
       ],
-    }
+      isAutoPlay: true,
+      isRecommendExpanded: false,
+      recommendVideos: Array.from({ length: 40 }, (_, index) => ({
+        title: `推荐视频标题 ${index + 1}：推荐视频`,
+        author: index % 2 === 0 ? "嘻嘻嘻" : "哈哈哈",
+        play: `${(Math.random() * 500 + 10).toFixed(1)}万`,
+        danmaku: `${Math.floor(Math.random() * 5000 + 100)}`,
+        duration: `0${Math.floor(Math.random() * 6) + 1}:${String(
+          Math.floor(Math.random() * 60)
+        ).padStart(2, "0")}`,
+      })),
+      isDanmakuOpen: false,
+      danmakuHistory: [
+        { time: "00:14", content: "两个手机的重要性", sendTime: "04-11 17:31" },
+        { time: "00:40", content: "完啦，掉沟里了。", sendTime: "04-11 17:35" },
+        { time: "00:49", content: "贴贴", sendTime: "04-11 17:37" },
+        { time: "00:33", content: "甜妃得圆润了", sendTime: "04-11 17:39" },
+        { time: "00:00", content: "细看时长！", sendTime: "04-11 17:40" },
+        { time: "01:16", content: "别骂了", sendTime: "04-11 17:40" },
+        {
+          time: "01:28",
+          content: "开一局！让他知道谁是老大",
+          sendTime: "04-11 17:42",
+        },
+        { time: "00:04", content: "老沫新鉴", sendTime: "04-11 17:44" },
+        { time: "01:48", content: "我要保释", sendTime: "04-11 17:44" },
+        { time: "01:24", content: "老夫不早说", sendTime: "04-11 17:44" },
+        {
+          time: "01:26",
+          content: "我惩罚我要被你浪费11分钟了咋办。。",
+          sendTime: "04-11 17:46",
+        },
+        { time: "01:21", content: "我乐意", sendTime: "04-11 17:47" },
+        {
+          time: "00:24",
+          content: "没手机玩就玩对象吧，又不是没有",
+          sendTime: "04-11 17:47",
+        },
+        {
+          time: "00:09",
+          content: "这不得拉着你开一把？不对，开一天？",
+          sendTime: "04-11 17:50",
+        },
+        {
+          time: "00:28",
+          content: "戴眼镜那个呢，不谈了？",
+          sendTime: "04-11 17:51",
+        },
+        { time: "00:11", content: "美食符号", sendTime: "04-11 18:03" },
+        { time: "01:16", content: "这这招还真可以欸", sendTime: "04-11 18:05" },
+        { time: "00:35", content: "←那个合约到期了", sendTime: "04-11 18:06" },
+        {
+          time: "01:20",
+          content: "哈哈哈哈哈哈哈哈哈哈",
+          sendTime: "04-11 18:11",
+        },
+        { time: "00:17", content: "电脑啊", sendTime: "04-11 18:17" },
+        { time: "00:04", content: "这时长", sendTime: "04-11 18:19" },
+        {
+          time: "00:31",
+          content: "脸越来越圆润了，没有以前的味道了",
+          sendTime: "04-11 18:22",
+        },
+        {
+          time: "01:44",
+          content: "人在无语的时候是真的会笑",
+          sendTime: "04-11 18:43",
+        },
+        {
+          time: "01:50",
+          content: "手机在里面享福，人在外面蹲监狱",
+          sendTime: "04-11 18:47",
+        },
+      ],
+      isExpand: false, // 是否展开
+      showToggle: false, // 是否显示按钮
+      description:
+        "sdsdsd21312321s 很长\n很长很长很长\n很长很长...sdsdsd21312321s 很长很长很长很长很长很长...sdsdsd21312321s 很长很长很长很长很长很长...sdsdsd21312321s 很长很长很长很长很长很长...sdsdsd21312321s 很长很长很长很长很长很长...sdsdsd21312321s 很长很长很长很长很长很长...sdsdsd21312321s 很长很长很长很长很长很长...sdsdsd21312321s 很长很长很长很长很长很长...sdsdsd21312321s 很长很长很长很长很长很长...",
+    };
+  },
+  mounted() {
+    this.$nextTick(() => {
+      const el = this.$refs.desc;
+
+      // 关键判断：内容高度 > 容器高度
+      if (el.scrollHeight > el.clientHeight) {
+        this.showToggle = true;
+      }
+    });
+  },
+  computed: {
+    displayedRecommendVideos() {
+      return this.isRecommendExpanded
+        ? this.recommendVideos.slice(0, 40)
+        : this.recommendVideos.slice(0, 20);
+    },
+  },
+  methods: {
+    toggle() {
+      this.isExpand = !this.isExpand;
+    },
+    toggleDanmakuPanel() {
+      this.isDanmakuOpen = !this.isDanmakuOpen;
+    },
   },
 };
 </script>
@@ -119,13 +613,114 @@ export default {
   align-items: flex-start;
   padding-left: 150px;
   padding-right: 150px;
+  position: relative;
 }
 .left-container {
   width: 800px;
 }
+.sticky-container {
+  position: sticky;
+  height: fit-content;
+  top: 80px;
+}
 .right-container {
-  width: 500px;
-  background-color: orange;
+  width: 400px;
+  margin-left: 30px;
+}
+.creator-card {
+  width: 100%;
+  border-radius: 2px;
+  padding: 16px 14px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+}
+.creator-avatar-link {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+.creator-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.creator-main {
+  margin-left: 12px;
+  flex: 1;
+}
+.creator-top-row {
+  display: flex;
+  align-items: center;
+  font-size: 18px;
+  line-height: 1;
+}
+.creator-name {
+  color: #161616;
+  font-size: 15px;
+  transition: 0.3s;
+}
+.creator-name:hover {
+  color: #00aeec;
+}
+.send-msg {
+  margin-left: 10px;
+  font-size: 13px;
+  line-height: 1;
+  color: #61666d;
+  transition: 0.3s;
+}
+.send-msg:hover {
+  color: #00aeec;
+}
+.creator-desc {
+  margin-top: 7px;
+  max-width: 300px;
+  color: #697586;
+  font-size: 15px;
+  line-height: 1.2;
+  white-space: nowrap; /* 不换行 */
+  overflow: hidden; /* 超出隐藏 */
+  text-overflow: ellipsis; /* 显示省略号 */
+}
+.creator-action-row {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+
+  gap: 14px;
+}
+.charge-btn,
+.follow-btn {
+  height: 30px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.charge-btn {
+  width: 110px;
+  color: #ff6ea8;
+  border: 1px solid #ff6ea8;
+  background: #fff7fb;
+}
+.charge-icon {
+  margin-right: 4px;
+  font-size: 14px;
+}
+.follow-btn {
+  width: 170px;
+  color: #fff;
+  border: none;
+  background: #12a9e2;
+}
+.charge-btn:hover {
+  background: #fff0f7;
+}
+.follow-btn:hover {
+  background: #0597ce;
 }
 .video-title {
   width: 100%;
@@ -170,5 +765,456 @@ export default {
 .video {
   width: 100%;
   height: 480px;
+}
+
+.video-toolbar-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.video-toolbar-left-main {
+  display: flex;
+  align-items: center;
+}
+.video-toolbar-left-item {
+  display: flex;
+  align-items: center;
+  margin-right: 36px;
+  cursor: pointer;
+}
+.video-toolbar-item-icon {
+  width: 28px;
+  height: 28px;
+  color: #61666d;
+  margin-right: 6px;
+
+  transition: 0.3s;
+}
+.video-toolbar-item-text {
+  display: flex;
+  height: 28px;
+  align-items: center;
+  font-size: 13px;
+  color: #61666d;
+  line-height: 28px;
+  text-align: center;
+  padding-bottom: 4px;
+
+  transition: 0.3s;
+}
+.video-toolbar-left-item:hover .video-toolbar-item-icon {
+  color: #00aeec;
+}
+.video-toolbar-left-item:hover .video-toolbar-item-text {
+  color: #00aeec;
+}
+.video-toolbar-right-main {
+  display: flex;
+  align-items: center;
+}
+.video-toolbar-right-item {
+  display: flex;
+  align-items: center;
+  margin-right: 16px;
+
+  cursor: pointer;
+}
+.video-complaint-icon {
+  width: 20px;
+  height: 28px;
+  transition: 0.3s;
+}
+.video-note-icon {
+  width: 20px;
+  height: 28px;
+  transition: 0.3s;
+}
+.video-toolbar-item-text2 {
+  display: flex;
+  height: 28px;
+  align-items: center;
+  font-size: 13px;
+  color: #61666d;
+  line-height: 28px;
+  text-align: center;
+  padding-bottom: 7px;
+
+  transition: 0.3s;
+}
+.video-tool-more-icon {
+  height: 28px;
+  width: 24px;
+  color: #61666d;
+
+  transition: 0.3s;
+}
+.video-tool-more-icon:hover {
+  color: #00aeec;
+}
+.video-toolbar-right-item:hover .video-complaint-icon {
+  color: #00aeec;
+}
+.video-toolbar-right-item:hover .video-note-icon {
+  color: #00aeec;
+}
+
+.video-toolbar-right-item:hover .video-toolbar-item-text2 {
+  color: #00aeec;
+}
+.divider {
+  width: 100%;
+  border-top: 1px solid #e3e5e7;
+}
+.desc-wrapper {
+  position: relative;
+  margin: 10px 0 15px;
+}
+
+.basic-desc-info {
+  height: 84px;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+.desc-info-text {
+  font-size: 14px;
+  color: #18191c;
+  font-weight: 380;
+  font-family: "PingFang SC";
+  white-space: pre-wrap;
+}
+/* 展开状态 */
+.basic-desc-info.expand {
+  height: auto;
+}
+
+/* 按钮 */
+.toggle-btn {
+  cursor: pointer;
+  color: #61666d;
+  font-size: 13px;
+  transition: 0.1s;
+  margin-top: 6px;
+}
+.toggle-btn:hover {
+  color: #00aeec;
+}
+.video-tag-container {
+  width: 100%;
+  margin-bottom: 12px;
+}
+.tag-panel {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+}
+.tag {
+  color: #61666d;
+  background: #f1f2f3;
+  height: 28px;
+  line-height: 28px;
+  border-radius: 14px;
+  font-size: 13px;
+  padding: 0 12px;
+  box-sizing: border-box;
+  transition: all 0.3s;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+
+  margin-right: 8px;
+  margin-bottom: 8px;
+}
+a {
+  text-decoration: none;
+  color: inherit;
+}
+.comment-container {
+  width: 100%;
+}
+.collapse-wrap {
+  margin-top: 20px;
+}
+.collapse-header {
+  height: 44px;
+  padding: 0 14px;
+  background: #f1f2f3;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+}
+.collapse-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.collapse-title {
+  font-size: 16px;
+  color: #18191c;
+}
+.collapse-dot {
+  color: #9499a0;
+  font-size: 18px;
+  line-height: 1;
+}
+.collapse-arrow {
+  color: #61666d;
+  font-size: 14px;
+  transform: rotate(0deg);
+  transition: transform 0.2s ease;
+}
+.collapse-arrow.open {
+  transform: rotate(180deg);
+}
+.collapse-content {
+  margin-top: 12px;
+}
+.danmaku-table-header {
+  display: grid;
+  grid-template-columns: 52px 1fr 160px;
+  align-items: center;
+  color: #9499a0;
+  font-size: 13px;
+  padding: 0 6px;
+  margin-bottom: 4px;
+}
+.danmaku-list-scroll {
+  max-height: 580px;
+  overflow-y: auto;
+  padding: 0 6px 4px;
+}
+.danmaku-list-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.danmaku-list-scroll::-webkit-scrollbar-thumb {
+  border-radius: 6px;
+  background: #d6d8db;
+}
+.danmaku-row {
+  display: grid;
+  grid-template-columns: 52px 1fr 160px;
+  align-items: center;
+  min-height: 30px;
+  font-size: 13px;
+  color: #18191c;
+}
+.col-time {
+  color: #61666d;
+}
+.col-content {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 10px;
+}
+.col-send-time {
+  color: #61666d;
+  text-align: right;
+  position: relative;
+}
+.row-send-time .row-actions {
+  display: none;
+}
+.danmaku-row:hover .send-time-text {
+  display: none;
+}
+.danmaku-row:hover .row-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+.row-action-btn {
+  height: 22px;
+  min-width: 72px;
+  border: 1px solid #00a1d6;
+  border-radius: 2px;
+  background: #fff;
+  color: #00a1d6;
+  font-size: 12px;
+  line-height: 20px;
+  padding: 0 6px;
+  white-space: nowrap;
+  cursor: pointer;
+
+  transition: 0.3s;
+}
+.row-action-btn:hover {
+  background: #00a1d6;
+  color: #fff;
+}
+.history-btn {
+  width: 100%;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  margin-top: 8px;
+  background: #f1f2f3;
+  color: #61666d;
+  font-size: 13px;
+  cursor: pointer;
+}
+.history-btn:hover {
+  background: #e8e9eb;
+}
+.recommend-list {
+  width: 100%;
+  margin-top: 20px;
+}
+.recommend-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.recommend-title {
+  font-size: 28px;
+  color: #18191c;
+}
+.autoplay-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.autoplay-text {
+  font-size: 14px;
+  color: #61666d;
+}
+.autoplay-switch {
+  width: 34px;
+  height: 20px;
+  border: none;
+  border-radius: 999px;
+  background: #d1d5db;
+  padding: 2px;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.2s ease;
+}
+.autoplay-switch.on {
+  background: #1ba9e1;
+}
+.switch-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  display: block;
+  transform: translateX(0);
+  transition: transform 0.2s ease;
+}
+.autoplay-switch.on .switch-dot {
+  transform: translateX(14px);
+}
+.recommend-items {
+  width: 100%;
+}
+.recommend-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid #eceef1;
+}
+.recommend-cover-link {
+  width: 190px;
+  height: 110px;
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+  flex-shrink: 0;
+  display: block;
+}
+.recommend-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.recommend-duration {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  height: 20px;
+  line-height: 20px;
+  border-radius: 4px;
+  padding: 0 6px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 12px;
+}
+.recommend-main {
+  flex: 1;
+  min-width: 0;
+}
+.recommend-video-title {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 15px;
+  color: #18191c;
+  line-height: 1.35;
+}
+.recommend-video-title:hover {
+  color: #00aeec;
+}
+.recommend-author-row {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.up-icon {
+  color: #9499a0;
+}
+.recommend-up {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 16px;
+  border: 1px solid #c9ccd0;
+  border-radius: 10px;
+  font-size: 11px;
+  color: #9499a0;
+}
+.recommend-author {
+  font-size: 14px;
+  color: #61666d;
+}
+.recommend-author:hover {
+  color: #00aeec;
+}
+.recommend-meta {
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  color: #9499a0;
+  gap: 4px;
+}
+.recommend-meta-item{
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.recommend-expand-btn {
+  width: 100%;
+  height: 40px;
+  margin-top: 4px;
+  border: none;
+  border-radius: 8px;
+  background: #f1f2f3;
+  color: #18191c;
+  font-size: 14px;
+  cursor: pointer;
+}
+.recommend-expand-btn:hover {
+  background: #e8eaec;
 }
 </style>
