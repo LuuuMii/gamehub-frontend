@@ -46,21 +46,37 @@
       <div class="uploaded-main">
         <div class="file-card-row">
           <div class="file-card active">
-            <div class="file-index">01</div>
-            <div class="file-status">上传完成</div>
+            <div class="file-index">{{ videoItem.name }}</div>
+            <div class="file-status">
+              {{ uploadPercentage === 100 ? "上传完成" : "上传中" }}
+            </div>
           </div>
-          <div class="file-card add">+ 添加视频</div>
+
+          <!-- <div class="file-card add">+ 添加视频</div> -->
         </div>
 
-        <button class="split-btn">+ 添加分P</button>
+        <!-- <button class="split-btn">+ 添加分P</button> -->
 
         <div class="progress-row">
-          <div class="progress-file">01</div>
-          <div class="progress-text">上传完成</div>
-          <div class="replace-video">更换视频</div>
+          <div class="progress-file">{{ videoItem.name }}</div>
+          <div class="progress-text">
+            <div class="video-name">1231212313</div>
+            <div
+              class="upload-statu"
+              :class="{ 'upload-success-status': uploadPercentage === 100 }"
+            >
+              {{ uploadPercentage === 100 ? "上传完成" : "上传中" }}
+            </div>
+          </div>
+          <div class="video-operation-btns" v-show="false">
+            <div>更换视频</div>
+          </div>
         </div>
         <div class="progress-track">
-          <el-progress :percentage="100" :format="format"></el-progress>
+          <el-progress
+            :percentage="uploadPercentage"
+            :format="format"
+          ></el-progress>
           <!-- <div class="progress-value"></div> -->
         </div>
       </div>
@@ -78,8 +94,8 @@
 
         <div class="form-item">
           <label class="form-label">标题</label>
-          <input class="text-input" v-model="videoTitle" maxlength="80" />
-          <div class="count">{{ videoTitle.length }}/80</div>
+          <input class="text-input" v-model="videoItem.name" maxlength="80" />
+          <div class="count">{{ videoItem.name.length }}/80</div>
         </div>
 
         <div class="form-item">
@@ -93,10 +109,21 @@
 
         <div class="form-item">
           <label class="form-label">标签</label>
-          <div class="tag-wrap">
-            <span class="tag-chip" v-for="tag in tags" :key="tag"
-              >{{ tag }} ×</span
-            >
+
+          <div class="tag-wrap" @click="focusInput">
+            <span class="tag-chip" v-for="(tag, index) in tags" :key="index">
+              {{ tag }}
+              <span class="close" @click.stop="removeTag(index)">×</span>
+            </span>
+
+            <!-- 输入框 -->
+            <input
+              ref="tagInput"
+              v-model="inputValue"
+              class="tag-input"
+              placeholder="输入标签回车"
+              @keydown.enter.prevent="addTag"
+            />
           </div>
         </div>
 
@@ -129,13 +156,22 @@ export default {
       videoTitle: "01",
       category: "动画",
       description: "",
-      tags: ["经典电影", "影视剪辑", "电视剧"],
+      tags: [
+        "经典电影",
+        "影视剪辑",
+        "电视剧",
+      ],
+      inputValue: "",
       uploadTips: [
         { title: "视频大小", desc: "视频大小16G以内，时长10小时以内" },
         { title: "视频格式", desc: "推荐上传 MP4/MOV/MKV 格式，转码更快" },
         { title: "视频分辨率", desc: "推荐分辨率：1080P、4K、高分辨率" },
       ],
       chunkSize: 5 * 1024 * 1024,
+      uploadPercentage: 0,
+      videoItem: {
+        name: "",
+      },
     };
   },
   methods: {
@@ -150,6 +186,7 @@ export default {
       const file = e.target.files[0];
       if (!file) return;
       this.hasUploaded = true;
+      this.videoItem.name = file.name;
       this.uploadChunkFile(file);
     },
     createChunks(file) {
@@ -175,7 +212,6 @@ export default {
     },
     async uploadChunkFile(file) {
       const chunks = this.createChunks(file);
-      console.log(chunks);
       const initRes = await initUpload(file.name);
       if (initRes.code === 200) {
         console.log(initRes);
@@ -191,10 +227,16 @@ export default {
             chunks[i].partNumber,
             chunks.length
           );
+          console.log(chunkRes);
+
           if (chunkRes.code !== 200) {
             // 上传失败 处理已上传的碎片
             break;
           }
+          // 进度条
+          this.uploadPercentage = Math.floor(
+            (chunkRes.data.uploadChunks / chunkRes.data.totalChunks) * 100
+          );
           index++;
         }
         if (index === chunks.length) {
@@ -205,6 +247,28 @@ export default {
           }
         }
       }
+    },
+    addTag() {
+      const value = this.inputValue.trim();
+
+      if (!value) return;
+
+      // 去重
+      if (this.tags.includes(value)) {
+        this.inputValue = "";
+        return;
+      }
+
+      this.tags.push(value);
+      this.inputValue = "";
+    },
+
+    removeTag(index) {
+      this.tags.splice(index, 1);
+    },
+
+    focusInput() {
+      this.$refs.tagInput.focus();
     },
   },
 };
@@ -448,11 +512,24 @@ export default {
   color: #55b76f;
 }
 
-.replace-video {
+.video-name {
+  color: #111;
+  font-size: 14px;
+}
+
+.upload-statu {
+  font-size: 12px;
+  color: #9499a0;
+}
+
+.upload-success-status {
+  color: #55b76f;
+}
+
+.video-operation-btns {
   margin-left: auto;
   color: #00a1d6;
 }
-
 
 .progress-value {
   width: 100%;
@@ -543,15 +620,34 @@ export default {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  align-items: center;
 }
 
+/* tag */
 .tag-chip {
   background: #00a1d6;
   color: #fff;
   border-radius: 4px;
   padding: 0 8px;
   height: 28px;
-  line-height: 28px;
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+}
+
+/* 删除按钮 */
+.tag-chip .close {
+  margin-left: 6px;
+  cursor: pointer;
+}
+
+/* 输入框 */
+.tag-input {
+  border: none;
+  outline: none;
+  flex: 1;
+  min-width: 120px;
+  height: 28px;
   font-size: 13px;
 }
 

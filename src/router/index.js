@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
+import { eventBus } from "@/mitt/eventBus";
 import HomeView from '../views/HomeView.vue'
 import ChildRenView from '../views/HeaderView.vue'
 import PostView from '../views/PostView.vue'
@@ -73,10 +74,12 @@ const routes = [
     name:'createVideo',
     component: VideoCreateView,
     props: true,
+    meta: { requiresAuth: true },
     children:[
       {
         path:'upload',
         name:'uploadVideoView',
+        meta: { requiresAuth: true },
         component: () => import('@/views/video-create/sub/UploadVideoView.vue'),
       },
     ]
@@ -201,5 +204,19 @@ const router = new VueRouter({
   routes
 })
 
+
+router.beforeEach((to, from, next) => {
+  const userId = localStorage.getItem('userId');
+  if(to.meta.requiresAuth && !userId){
+
+    //登录页面
+    eventBus.emit('openLogin');
+    eventBus.emit('openMask');
+
+    return;
+  }
+
+  next();
+})
 
 export default router

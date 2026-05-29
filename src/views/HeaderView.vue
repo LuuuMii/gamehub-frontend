@@ -525,6 +525,7 @@ export default {
         localStorage.removeItem("userId");
         localStorage.removeItem("username");
         localStorage.removeItem("avatar");
+        this.$router.push('/');
         window.location.reload();
       }
     },
