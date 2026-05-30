@@ -48,3 +48,14 @@ export function completeUpload(objectName,uploadId){
         }
     )
 }
+
+export function listParts(objectName,uploadId){
+    return request.post("/oss/upload/listParts",null,
+        {
+            params:{
+                objectName,
+                uploadId
+            }
+        }
+    )
+}

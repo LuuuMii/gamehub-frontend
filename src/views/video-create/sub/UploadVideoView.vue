@@ -68,8 +68,22 @@
               {{ uploadPercentage === 100 ? "上传完成" : "上传中" }}
             </div>
           </div>
-          <div class="video-operation-btns" v-show="false">
-            <div>更换视频</div>
+          <div class="video-operation-btns">
+            <div
+              class="op-btn"
+              v-if="!isPauseUpload"
+              @click="pauseUploadHandler"
+            >
+              <i class="el-icon-video-pause"></i>
+            </div>
+            <div
+              class="op-btn"
+              v-if="isPauseUpload"
+              @click="continueUploadHandler"
+            >
+              <i class="el-icon-video-play"></i>
+            </div>
+            <div class="op-btn"><i class="el-icon-refresh-right"></i></div>
           </div>
         </div>
         <div class="progress-track">
@@ -147,20 +161,21 @@
 </template>
 
 <script>
-import { initUpload, uploadChunk, completeUpload } from "@/api/oss.js";
+import {
+  initUpload,
+  uploadChunk,
+  completeUpload,
+  
+} from "@/api/oss.js";
 export default {
   name: "UploadVideoView",
   data() {
     return {
-      hasUploaded: true,
+      hasUploaded: false,
       videoTitle: "01",
       category: "动画",
       description: "",
-      tags: [
-        "经典电影",
-        "影视剪辑",
-        "电视剧",
-      ],
+      tags: ["经典电影", "影视剪辑", "电视剧"],
       inputValue: "",
       uploadTips: [
         { title: "视频大小", desc: "视频大小16G以内，时长10小时以内" },
@@ -171,7 +186,14 @@ export default {
       uploadPercentage: 0,
       videoItem: {
         name: "",
+        objectName: "",
+        uploadId: "",
       },
+      isPauseUpload: false,
+      uploadChunks: [],
+      allChunks: [],
+      pendingChunks: [],
+      uploadedChunks: [],
     };
   },
   methods: {
@@ -187,7 +209,8 @@ export default {
       if (!file) return;
       this.hasUploaded = true;
       this.videoItem.name = file.name;
-      this.uploadChunkFile(file);
+      this.uploadFileHandler(file);
+      // this.uploadChunkFile(file);
     },
     createChunks(file) {
       const chunks = [];
@@ -208,7 +231,20 @@ export default {
         partNumber++;
       }
 
+      this.uploadChunks = chunks;
+      this.allChunks = [...chunks];
+      this.pendingChunks = [...chunks];
+
       return chunks;
+    },
+    async uploadFileHandler(file){
+      this.createChunks(file);
+      const initRes = await initUpload(file.name);
+      if(initRes.code === 200){
+        this.videoItem.uploadId = initRes.data.uploadId;
+        this.videoItem.objectName = initRes.data.objectName;
+        this.startUpload();
+      }
     },
     async uploadChunkFile(file) {
       const chunks = this.createChunks(file);
@@ -217,8 +253,13 @@ export default {
         console.log(initRes);
         const uploadId = initRes.data.uploadId;
         const objectName = initRes.data.objectName;
+        this.videoItem.uploadId = uploadId;
+        this.videoItem.objectName = objectName;
         let index = 0;
         for (let i = 0; i < chunks.length; i++) {
+          if (this.isPauseUpload) {
+            break;
+          }
           // 循环上传
           const chunkRes = await uploadChunk(
             chunks[i].chunk,
@@ -248,6 +289,58 @@ export default {
         }
       }
     },
+    async startUpload() {
+      while (this.pendingChunks.length > 0) {
+        if (this.isPauseUpload) break;
+
+        const chunk = this.pendingChunks.shift();
+
+
+        const res = await uploadChunk(
+          chunk.chunk,
+          this.videoItem.objectName,
+          this.videoItem.uploadId,
+          chunk.partNumber,
+          this.allChunks.length
+        );
+
+        if (res.code !== 200) {
+          // 失败 → 放回队列头
+          this.pendingChunks.unshift(chunk);
+          break;
+        }
+
+        // 成功
+        this.uploadedChunks.push(chunk);
+
+        this.updateProgress();
+      }
+
+      this.checkComplete();
+    },
+    async checkComplete() {
+      if(this.uploadedChunks.length === this.allChunks.length){
+        const res = await completeUpload(this.videoItem.objectName,this.videoItem.uploadId);
+        if(res.code === 200){
+          console.log("合并完成");
+          console.log(res);
+        }
+      }
+    },
+    updateProgress(){
+      this.uploadPercentage = Math.floor(
+        (this.uploadedChunks.length / this.allChunks.length) * 100
+    );
+    },
+    pauseUploadHandler() {
+      this.isPauseUpload = true;
+    },
+    async continueUploadHandler() {
+      this.isPauseUpload = false;
+      this.startUpload();
+    },
+    // 重新上传分片
+    
     addTag() {
       const value = this.inputValue.trim();
 
@@ -528,7 +621,21 @@ export default {
 
 .video-operation-btns {
   margin-left: auto;
-  color: #00a1d6;
+  margin-right: 30px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.op-btn {
+  color: #757575;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #e7e7e7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
 }
 
 .progress-value {
