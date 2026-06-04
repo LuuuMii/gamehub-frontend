@@ -209,10 +209,13 @@ router.beforeEach((to, from, next) => {
   const userId = localStorage.getItem('userId');
   if(to.meta.requiresAuth && !userId){
 
+    sessionStorage.setItem('redirectPath',to.fullPath);
+
     //登录页面
     eventBus.emit('openLogin');
     eventBus.emit('openMask');
 
+    next(false);
     return;
   }
 

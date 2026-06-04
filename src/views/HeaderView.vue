@@ -17,33 +17,59 @@
         </ul>
       </div>
     </div>
-    <div class="search-box" ref="searchBox" @click.stop :class="{ focusInput : isFoucsInputSearchFlag }">
+    <div
+      class="search-box"
+      ref="searchBox"
+      @click.stop
+      :class="{ focusInput: isFoucsInputSearchFlag }"
+    >
       <!-- 第一层 -->
       <div class="search-first-floor">
         <div class="search-first-floor-left">
-          <input type="text" 
-          v-model="searchContent" 
-          :placeholder="placeholderSearchContent" 
-          @input="handleOnInput"
-          @keyup.enter="handleSearch"
-          @focus="focusInputSearch"/>
+          <input
+            type="text"
+            v-model="searchContent"
+            :placeholder="placeholderSearchContent"
+            @input="handleOnInput"
+            @keyup.enter="handleSearch"
+            @focus="focusInputSearch"
+          />
         </div>
         <div class="search-first-floor-right" @click="handleSearch">
           <img src="@/assets/icon/search_24dp_000.svg" />
         </div>
       </div>
       <!-- 第二层 搜索历史-->
-      <div class="search-second-floor" v-show="isFoucsInputSearchFlag  && searchContent==='' && historyList && historyList.length > 0">
+      <div
+        class="search-second-floor"
+        v-show="
+          isFoucsInputSearchFlag &&
+          searchContent === '' &&
+          historyList &&
+          historyList.length > 0
+        "
+      >
         <div>
           <div>搜索历史</div>
           <div @click="handleDeleteAllHistory">清空</div>
         </div>
         <div :class="{ expand: myTrueFlag }" ref="historyWrapper">
-          <div class="search-history-content-box" @click="handleSearchByContent(item)" v-for="(item,index) in historyList" :key="index">
+          <div
+            class="search-history-content-box"
+            @click="handleSearchByContent(item)"
+            v-for="(item, index) in historyList"
+            :key="index"
+          >
             {{ item }}
             <div class="close" @click.stop="handleDeleteByHistory(item)">
-              <svg class="close-icon" viewBox="0 0 1024 1024" width="14" height="14">
-                <path d="M512 64.303538c-247.25636 0-447.696462 200.440102-447.696462 447.696462
+              <svg
+                class="close-icon"
+                viewBox="0 0 1024 1024"
+                width="14"
+                height="14"
+              >
+                <path
+                  d="M512 64.303538c-247.25636 0-447.696462 200.440102-447.696462 447.696462
                 0 247.254314 200.440102 447.696462 447.696462 447.696462s447.696462-200.440102
                 447.696462-447.696462S759.25636 64.303538 512 64.303538zM710.491727 665.266709c12.491499
                 12.491499 12.489452 32.729425-0.002047 45.220924-6.246261 6.246261-14.429641 9.370415-22.611997
@@ -52,42 +78,68 @@
                 c-12.491499-12.491499-12.491499-32.729425 0-45.220924l153.268756-153.266709L313.50725 358.730221
                 c-12.491499-12.491499-12.489452-32.729425 0.002047-45.220924s32.729425-12.495592 45.220924-0.004093
                 l153.268756 153.268756 153.268756-153.268756c12.491499-12.491499 32.729425-12.487406 45.220924
-                0.004093s12.493545 32.729425 0.002047 45.220924L557.225017 512 710.491727 665.266709z">
-                </path>
+                0.004093s12.493545 32.729425 0.002047 45.220924L557.225017 512 710.491727 665.266709z"
+                ></path>
               </svg>
             </div>
           </div>
         </div>
-        <div class="search-expand-button"  v-show="false"  @click="isExpandSearchFlag = !isExpandSearchFlag">
-          <div class="search-expand-text" >{{ isExpandSearchFlag? "收起" : "展开更多" }}</div>
-          <svg class="fold-icon" :class="{ rotate: isExpandSearchFlag }" viewBox="0 0 12 12">
-            <path fill-rule="evenodd" clip-rule="evenodd" d="M5.46967 9.17678C5.76256 9.46967 6.23744 9.46967 6.53033 9.17678L10.7286 4.97855
+        <div
+          class="search-expand-button"
+          v-show="false"
+          @click="isExpandSearchFlag = !isExpandSearchFlag"
+        >
+          <div class="search-expand-text">
+            {{ isExpandSearchFlag ? "收起" : "展开更多" }}
+          </div>
+          <svg
+            class="fold-icon"
+            :class="{ rotate: isExpandSearchFlag }"
+            viewBox="0 0 12 12"
+          >
+            <path
+              fill-rule="evenodd"
+              clip-rule="evenodd"
+              d="M5.46967 9.17678C5.76256 9.46967 6.23744 9.46967 6.53033 9.17678L10.7286 4.97855
               C10.9238 4.78329 10.9238 4.46671 10.7286 4.27145C10.5333 4.07618 10.2167 4.07618 10.0214 4.27145L6 8.29289
               L1.97855 4.27145C1.78329 4.07618 1.46671 4.07618 1.27145 4.27145
-              C1.07618 4.46671 1.07618 4.78329 1.27145 4.97855L5.46967 9.17678Z">
-            </path>
+              C1.07618 4.46671 1.07618 4.78329 1.27145 4.97855L5.46967 9.17678Z"
+            ></path>
           </svg>
         </div>
       </div>
       <!-- 第三层 热搜 -->
-      <div class="search-third-floor" v-show="isFoucsInputSearchFlag && searchContent===''">
+      <div
+        class="search-third-floor"
+        v-show="isFoucsInputSearchFlag && searchContent === ''"
+      >
         <div>cilicili热搜</div>
         <div class="hot-search-box">
-          <div class="one-hot-search-box" @click="handleSearchByContent(item.content)" v-for="(item,index) in hotSearchList" :key="index">
-            <div :class="{'last-seven-text' : index+1>=4}">{{ index + 1}}</div>
+          <div
+            class="one-hot-search-box"
+            @click="handleSearchByContent(item.content)"
+            v-for="(item, index) in hotSearchList"
+            :key="index"
+          >
+            <div :class="{ 'last-seven-text': index + 1 >= 4 }">
+              {{ index + 1 }}
+            </div>
             <div>{{ item.content }}</div>
           </div>
         </div>
       </div>
       <!-- 第四层  只有输入内容才会出现 -->
-      <div class="search-fourth-floor" v-show="isFoucsInputSearchFlag && searchContent!==''">
-        <div class="search-content-box" 
-        v-for="(item,index) in searchListByEs" 
-        :key="index" 
-        v-html="item.keyword"
-        @click="handleSearchByContent(item.rawKeyword)">
-          
-        </div>
+      <div
+        class="search-fourth-floor"
+        v-show="isFoucsInputSearchFlag && searchContent !== ''"
+      >
+        <div
+          class="search-content-box"
+          v-for="(item, index) in searchListByEs"
+          :key="index"
+          v-html="item.keyword"
+          @click="handleSearchByContent(item.rawKeyword)"
+        ></div>
       </div>
     </div>
     <div class="rightContainer">
@@ -126,7 +178,8 @@
           @mouseenter="mouseenterHandlerForUserInfo"
           @mouseleave="mouseleaveHandlerForUserInfo"
         >
-          <img class="login-avatar" :src="userAvatar" />
+          <img class="login-avatar" :src="user.avatar" />
+          <!-- <img class="login-avatar" :src="userAvatar" /> -->
         </li>
         <!-- 展开个人信息栏目 -->
 
@@ -264,9 +317,14 @@
 import { logout } from "@/api/user";
 import { eventBus } from "@/mitt/eventBus";
 import { mapState } from "vuex";
-import { getClientIP , getDeviceInfo} from "@/utils/clientInfo.js"
-import { suggestSearch } from "@/api/searchKeywordPool.js"
-import { getUserSearchHistory , insertUserSearchHistory , deleteUserSearchHistory ,deleteAllHistory } from "@/api/userSearchHistory.js"
+import { getClientIP, getDeviceInfo } from "@/utils/clientInfo.js";
+import { suggestSearch } from "@/api/searchKeywordPool.js";
+import {
+  getUserSearchHistory,
+  insertUserSearchHistory,
+  deleteUserSearchHistory,
+  deleteAllHistory,
+} from "@/api/userSearchHistory.js";
 export default {
   data() {
     return {
@@ -277,71 +335,65 @@ export default {
       userAvatar: null,
       isShowUserInfo: false,
       showUserInfoTimer: null,
-      isLogin: false,
       isExpandSearchFlag: false,
       isFoucsInputSearchFlag: false,
-      searchContent:"",
-      placeholderSearchContent:"瓦洛兰特",
-      historyList:[
-        
-      ],
-      hotSearchList:[
+      searchContent: "",
+      placeholderSearchContent: "瓦洛兰特",
+      historyList: [],
+      hotSearchList: [
         {
           id: 1,
-          content:'全球PC市场进入寒冬了吗'
+          content: "全球PC市场进入寒冬了吗",
         },
         {
           id: 2,
-          content:'极客湾造出辐射哔哔小子'
+          content: "极客湾造出辐射哔哔小子",
         },
         {
           id: 3,
-          content:'DRG vs NOVA VCT第一赛段'
+          content: "DRG vs NOVA VCT第一赛段",
         },
         {
           id: 4,
-          content:'三角洲行动烽火联赛春季赛'
+          content: "三角洲行动烽火联赛春季赛",
         },
         {
           id: 5,
-          content:'沪指再度失守3900点'
+          content: "沪指再度失守3900点",
         },
         {
           id: 6,
-          content:'雪山救水滴'
+          content: "雪山救水滴",
         },
         {
           id: 7,
-          content:'NCT李马克不续约离开SM'
+          content: "NCT李马克不续约离开SM",
         },
         {
           id: 8,
-          content:'伊朗称再次击落美军F35战机'
+          content: "伊朗称再次击落美军F35战机",
         },
         {
           id: 9,
-          content:'Anthropic误删数千GitHub仓库'
+          content: "Anthropic误删数千GitHub仓库",
         },
         {
           id: 10,
-          content:'东契奇受伤'
+          content: "东契奇受伤",
         },
       ],
-      canExpand:false,
-      myTrueFlag:true,
-      searchListByEs:[],
-      inputTimer:null,
-      suggestList:[],
+      canExpand: false,
+      myTrueFlag: true,
+      searchListByEs: [],
+      inputTimer: null,
+      suggestList: [],
     };
   },
   created() {
-    if (this.$store.state.token) {
-      this.isLogin = true;
-    }
     this.initData();
   },
   methods: {
-    initData(){
+    initData() {
       this.getUserSearchHistory();
     },
     queryBlur() {
@@ -525,8 +577,13 @@ export default {
         localStorage.removeItem("userId");
         localStorage.removeItem("username");
         localStorage.removeItem("avatar");
-        this.$router.push('/');
-        window.location.reload();
+
+        // 清空vuex
+        this.$store.commit("logout");
+        
+        if (this.$route.path !== "/") {
+          this.$router.push("/");
+        }
       }
     },
     headerPushRouter(url) {
@@ -536,111 +593,108 @@ export default {
     },
 
     // 选中搜索框点击事件
-    focusInputSearch(){
+    focusInputSearch() {
       this.isFoucsInputSearchFlag = true;
     },
     // 搜索框取消点击事件
     handleClickOutside(e) {
-    const box = this.$refs.searchBox
+      const box = this.$refs.searchBox;
       if (box && !box.contains(e.target)) {
-        this.isFoucsInputSearchFlag = false
+        this.isFoucsInputSearchFlag = false;
       }
     },
     // 搜索事件
-    async handleSearch(){
-      if(this.searchContent === ""){
-        this.searchContent = this.placeholderSearchContent
+    async handleSearch() {
+      if (this.searchContent === "") {
+        this.searchContent = this.placeholderSearchContent;
       }
       const userId = localStorage.getItem("userId");
-      if(userId !== null && userId !== ""){
+      if (userId !== null && userId !== "") {
         const ip = await getClientIP();
         const deviceInfo = getDeviceInfo();
         const historyData = {
-          userId:userId,
-          keyword:this.searchContent,
-          source:deviceInfo.browser,
-          device:deviceInfo.browser,
-          ip:ip
-        }
+          userId: userId,
+          keyword: this.searchContent,
+          source: deviceInfo.browser,
+          device: deviceInfo.browser,
+          ip: ip,
+        };
         await insertUserSearchHistory(historyData);
         this.getUserSearchHistory();
       }
-      
+
       // 添加历史记录
       this.$router.push({
-        path:'/search/custom',
-        query:{
+        path: "/search/custom",
+        query: {
           keyword: this.searchContent,
-          type: "content",  // 查询类型
-        }
-      })
-      eventBus.emit("searchChange")
-      eventBus.emit("resetFilter")
+          type: "content", // 查询类型
+        },
+      });
+      eventBus.emit("searchChange");
+      eventBus.emit("resetFilter");
       // window.location.reload();
-      
     },
     // 根据内容查询点击事件(包含历史内容查询和热搜查询)
-    async handleSearchByContent(content){
+    async handleSearchByContent(content) {
       this.searchContent = content;
       const userId = localStorage.getItem("userId");
-      if(userId !== null && userId !== ""){
+      if (userId !== null && userId !== "") {
         const ip = await getClientIP();
         const deviceInfo = getDeviceInfo();
         const historyData = {
-          userId:userId,
-          keyword:this.searchContent,
-          source:deviceInfo.browser,
-          device:deviceInfo.browser,
-          ip:ip
-        }
+          userId: userId,
+          keyword: this.searchContent,
+          source: deviceInfo.browser,
+          device: deviceInfo.browser,
+          ip: ip,
+        };
         await insertUserSearchHistory(historyData);
         this.getUserSearchHistory();
       }
-      
+
       // 添加历史记录
       this.$router.push({
-        path:'/search/custom',
-        query:{
+        path: "/search/custom",
+        query: {
           keyword: this.searchContent,
-          type: "content",  // 查询类型
-        }
-      })
-      eventBus.emit("searchChange")
-      eventBus.emit("resetFilter")
+          type: "content", // 查询类型
+        },
+      });
+      eventBus.emit("searchChange");
+      eventBus.emit("resetFilter");
       // window.location.reload();
     },
-    async handleDeleteByHistory(historyContent){
+    async handleDeleteByHistory(historyContent) {
       const userId = localStorage.getItem("userId");
-      if(userId!==null && userId !== ""){
+      if (userId !== null && userId !== "") {
         const deleteData = {
-          userId:userId,
-          keyword:historyContent
-        }
+          userId: userId,
+          keyword: historyContent,
+        };
         await deleteUserSearchHistory(deleteData);
         await this.getUserSearchHistory();
       }
-      
     },
     // 删除所有的浏览记录
-    async handleDeleteAllHistory(){
+    async handleDeleteAllHistory() {
       const userId = localStorage.getItem("userId");
-      if(userId!=null && userId !== ""){
+      if (userId != null && userId !== "") {
         const res = await deleteAllHistory(userId);
-        if(res.code === 200){
+        if (res.code === 200) {
           await this.getUserSearchHistory();
         }
       }
     },
     // 获取用户的搜索记录
-    async getUserSearchHistory(){
+    async getUserSearchHistory() {
       const userId = localStorage.getItem("userId");
-      if(userId !== null && userId !== ""){ 
+      if (userId !== null && userId !== "") {
         const res = await getUserSearchHistory(userId);
-        if(res.code === 200){
+        if (res.code === 200) {
           this.historyList = res.data;
         }
       }
-      
     },
     // 输入框输入后的触发事件
     handleOnInput() {
@@ -659,8 +713,8 @@ export default {
         try {
           // 调用后端接口
           const searchData = {
-            keyword: this.searchContent
-          }
+            keyword: this.searchContent,
+          };
           const res = await suggestSearch(searchData);
           this.searchListByEs = res.data;
         } catch (err) {
@@ -672,13 +726,16 @@ export default {
   mounted() {
     this.restaurants = this.loadAll();
     this.boundClickOutside = this.handleClickOutside.bind(this);
-    document.addEventListener('click', this.boundClickOutside);
+    document.addEventListener("click", this.boundClickOutside);
   },
   beforeUnmount() {
-    document.removeEventListener('click', this.boundClickOutside)
+    document.removeEventListener("click", this.boundClickOutside);
   },
   computed: {
     ...mapState(["user", "token"]),
+    isLogin() {
+      return !!this.token;
+    },
   },
   watch: {
     user(newVal) {
@@ -973,16 +1030,16 @@ export default {
   background-color: #e1e1e4;
   transition: 0.3s;
 }
-.focusInput{
+.focusInput {
   background-color: #fff;
 }
-.search-first-floor{
+.search-first-floor {
   display: flex;
   width: 100%;
   padding-top: 4px;
   margin-bottom: 10px;
 }
-.search-first-floor-left{
+.search-first-floor-left {
   width: 380px;
   height: 30px;
   background-color: #e3e5e7;
@@ -998,7 +1055,7 @@ export default {
   line-height: 20px;
   background-color: #e3e5e7;
 }
-.search-first-floor-right{
+.search-first-floor-right {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -1008,37 +1065,37 @@ export default {
   border-radius: 4px;
   transition: 0.3s;
 }
-.search-first-floor-right:hover{
+.search-first-floor-right:hover {
   background-color: #e3e5e7;
   cursor: pointer;
 }
-.search-second-floor{
+.search-second-floor {
   width: 100%;
   padding: 5px 8px 2px;
 }
-.search-second-floor > div:nth-child(1){
+.search-second-floor > div:nth-child(1) {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-.search-second-floor > div:nth-child(1) > div:nth-child(1){
+.search-second-floor > div:nth-child(1) > div:nth-child(1) {
   height: 24px;
   font-weight: 500;
   font-size: 16px;
   line-height: 24px;
 }
-.search-second-floor > div:nth-child(1) > div:nth-child(2){
+.search-second-floor > div:nth-child(1) > div:nth-child(2) {
   height: 15px;
-  color: #9499A0;
+  color: #9499a0;
   font-size: 12px;
   line-height: 15px;
   cursor: pointer;
   transition: 0.3s;
 }
-.search-second-floor > div:nth-child(1) > div:nth-child(2):hover{
+.search-second-floor > div:nth-child(1) > div:nth-child(2):hover {
   color: #00aeec;
 }
-.search-second-floor > div:nth-child(2){
+.search-second-floor > div:nth-child(2) {
   width: 100%;
   display: flex;
   flex-wrap: wrap;
@@ -1046,10 +1103,10 @@ export default {
   max-height: 80px;
   overflow: hidden;
 }
-.search-second-floor > div:nth-child(2).expand{
+.search-second-floor > div:nth-child(2).expand {
   max-height: 160px;
 }
-.search-history-content-box{
+.search-history-content-box {
   position: relative;
   height: 30px;
   font-size: 12px;
@@ -1057,7 +1114,7 @@ export default {
   line-height: 15px;
   padding: 7px 10px 8px;
   border-radius: 4px;
-  background-color: #F6F7F8;
+  background-color: #f6f7f8;
   cursor: pointer;
   margin-right: 10px;
   margin-bottom: 10px;
@@ -1068,75 +1125,75 @@ export default {
   transition: 0.3s;
 }
 
-.search-history-content-box:hover{
-  color:#2bbbee;
+.search-history-content-box:hover {
+  color: #2bbbee;
 }
-.search-expand-button{
+.search-expand-button {
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.search-expand-button{
+.search-expand-button {
   font-size: 12px;
   line-height: 15px;
   height: 15px;
-  color: #9499A0;
+  color: #9499a0;
   cursor: pointer;
   margin-bottom: 8px;
 }
-.fold-icon{
+.fold-icon {
   width: 12px;
   height: 12px;
-  fill: #9499A0;
+  fill: #9499a0;
   margin-left: 2px;
 }
 .fold-icon.rotate {
   transform: rotate(180deg);
 }
-.close{
+.close {
   position: absolute;
   display: none;
   top: 0;
   right: 0;
   transition: 0.3s;
 }
-.close-icon{
-  fill: #9499A0;;
+.close-icon {
+  fill: #9499a0;
 }
-.search-history-content-box:hover .close{
+.search-history-content-box:hover .close {
   display: block;
 }
-.search-third-floor{
+.search-third-floor {
   width: 100%;
   margin-bottom: 10px;
 }
-.search-third-floor > div:nth-child(1){
+.search-third-floor > div:nth-child(1) {
   height: 24px;
   font-weight: 500;
   font-size: 16px;
   line-height: 24px;
-  color: #18191C;
+  color: #18191c;
   margin-left: 8px;
 }
-.hot-search-box{
+.hot-search-box {
   display: flex;
   flex-wrap: wrap;
 }
-.one-hot-search-box{
+.one-hot-search-box {
   display: flex;
   width: 50%;
   height: 38px;
   padding: 0 8px 0;
   align-items: center;
 }
-.one-hot-search-box:hover{
+.one-hot-search-box:hover {
   cursor: pointer;
   background-color: #e3e5e7;
 }
 /* 排行 */
-.one-hot-search-box > div:nth-child(1){
-  color: #18191C;
+.one-hot-search-box > div:nth-child(1) {
+  color: #18191c;
   font-size: 14px;
   line-height: 17px;
   height: 17px;
@@ -1147,7 +1204,7 @@ export default {
   letter-spacing: 0;
 }
 /* 内容 */
-.one-hot-search-box > div:nth-child(2){
+.one-hot-search-box > div:nth-child(2) {
   font-size: 14px;
   line-height: 17px;
   height: 17px;
@@ -1158,17 +1215,17 @@ export default {
   letter-spacing: 0;
 }
 /* 排行榜后七位的颜色 */
-.last-seven-text{
+.last-seven-text {
   color: #9499a0 !important;
 }
-.has-content{
-  background-color: #fff!important;
+.has-content {
+  background-color: #fff !important;
 }
-.search-fourth-floor{
+.search-fourth-floor {
   width: 100%;
   padding: 10px 0;
 }
-.search-content-box{
+.search-content-box {
   width: 100%;
   height: 32px;
   line-height: 32px;
@@ -1182,10 +1239,10 @@ export default {
   margin-bottom: 4px;
   transition: 0.3s;
 }
-.search-content-box:hover{
+.search-content-box:hover {
   background-color: #e3e5e7;
 }
-:deep(.search-content-box em){
+:deep(.search-content-box em) {
   color: #f25d8e;
   font-style: normal;
 }

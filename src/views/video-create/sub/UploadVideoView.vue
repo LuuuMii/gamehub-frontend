@@ -101,9 +101,16 @@
         <div class="form-item">
           <label class="form-label">封面</label>
           <div class="cover-box">
-            <img class="cover-img" src="@/assets/avatar.jpg" alt="" />
-            <div class="cover-mask">封面设置</div>
+            <img class="cover-img" :src="videoItem.coverImgUrl" alt="" />
+            <div class="cover-mask" @click="chooseCover">封面设置</div>
           </div>
+          <input
+            ref="coverInput"
+            type="file"
+            accept="image/*"
+            style="display: none"
+            @change="handleCoverChange"
+          />
         </div>
 
         <div class="form-item">
@@ -135,7 +142,7 @@
               ref="tagInput"
               v-model="inputValue"
               class="tag-input"
-              placeholder="输入标签回车"
+              placeholder="按回车键Enter创建标签"
               @keydown.enter.prevent="addTag"
             />
           </div>
@@ -165,7 +172,7 @@ import {
   initUpload,
   uploadChunk,
   completeUpload,
-  
+  uploadFile,
 } from "@/api/oss.js";
 export default {
   name: "UploadVideoView",
@@ -188,6 +195,7 @@ export default {
         name: "",
         objectName: "",
         uploadId: "",
+        coverImgUrl: require("@/assets/avatar.jpg"),
       },
       isPauseUpload: false,
       uploadChunks: [],
@@ -204,13 +212,66 @@ export default {
       this.$refs.videoFileInput && this.$refs.videoFileInput.click();
     },
 
-    onFileChange(e) {
+    async onFileChange(e) {
       const file = e.target.files[0];
       if (!file) return;
       this.hasUploaded = true;
       this.videoItem.name = file.name;
+
+      // 制作视频封面
+      const coverBase64 = await this.generateVideoCover(file);
+
+      this.videoItem.coverImgUrl = coverBase64;
+      // 上传文件分片
       this.uploadFileHandler(file);
-      // this.uploadChunkFile(file);
+    },
+    generateVideoCover(file) {
+      return new Promise((resolve, reject) => {
+        // 创建 video
+        const video = document.createElement("video");
+
+        // 本地视频地址
+        video.src = URL.createObjectURL(file);
+
+        // 静音（某些浏览器要求）
+        video.muted = true;
+
+        // 预加载
+        video.preload = "metadata";
+
+        video.onloadedmetadata = () => {
+          // 如果视频不足1秒
+          const targetTime = Math.min(1, video.duration / 2);
+
+          // 跳转到指定时间
+          video.currentTime = targetTime;
+        };
+
+        video.onseeked = () => {
+          // 创建 canvas
+          const canvas = document.createElement("canvas");
+
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+
+          const ctx = canvas.getContext("2d");
+
+          // 绘制视频帧
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+          // 转成 base64
+          const coverBase64 = canvas.toDataURL("image/jpeg", 0.8);
+
+          // 释放内存
+          URL.revokeObjectURL(video.src);
+
+          resolve(coverBase64);
+        };
+
+        video.onerror = () => {
+          reject(new Error("视频加载失败"));
+        };
+      });
     },
     createChunks(file) {
       const chunks = [];
@@ -237,10 +298,10 @@ export default {
 
       return chunks;
     },
-    async uploadFileHandler(file){
+    async uploadFileHandler(file) {
       this.createChunks(file);
       const initRes = await initUpload(file.name);
-      if(initRes.code === 200){
+      if (initRes.code === 200) {
         this.videoItem.uploadId = initRes.data.uploadId;
         this.videoItem.objectName = initRes.data.objectName;
         this.startUpload();
@@ -295,7 +356,6 @@ export default {
 
         const chunk = this.pendingChunks.shift();
 
-
         const res = await uploadChunk(
           chunk.chunk,
           this.videoItem.objectName,
@@ -319,18 +379,21 @@ export default {
       this.checkComplete();
     },
     async checkComplete() {
-      if(this.uploadedChunks.length === this.allChunks.length){
-        const res = await completeUpload(this.videoItem.objectName,this.videoItem.uploadId);
-        if(res.code === 200){
+      if (this.uploadedChunks.length === this.allChunks.length) {
+        const res = await completeUpload(
+          this.videoItem.objectName,
+          this.videoItem.uploadId
+        );
+        if (res.code === 200) {
           console.log("合并完成");
           console.log(res);
         }
       }
     },
-    updateProgress(){
+    updateProgress() {
       this.uploadPercentage = Math.floor(
         (this.uploadedChunks.length / this.allChunks.length) * 100
-    );
+      );
     },
     pauseUploadHandler() {
       this.isPauseUpload = true;
@@ -339,8 +402,23 @@ export default {
       this.isPauseUpload = false;
       this.startUpload();
     },
-    // 重新上传分片
-    
+    chooseCover() {
+      this.$refs.coverInput.click();
+    },
+    async handleCoverChange(e) {
+      const file = e.target.files[0];
+      if (file.size > 2 * 1024 * 1024) {
+        this.$message.error("封面图片不能超过2MB!");
+        return;
+      }
+      console.log(file);
+      const fileCategory = "COVER_IMG";
+      const res = await uploadFile(file, fileCategory);
+      if (res.code === 200) {
+        this.videoItem.coverImgUrl = res.data.url;
+        this.$message.success("更新封面成功!");
+      }
+    },
     addTag() {
       const value = this.inputValue.trim();
 
@@ -693,6 +771,7 @@ export default {
   color: #fff;
   text-align: center;
   font-size: 12px;
+  cursor: pointer;
 }
 
 .text-input,

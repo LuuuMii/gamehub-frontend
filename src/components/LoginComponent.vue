@@ -162,6 +162,7 @@
 <script>
 import { eventBus } from "@/mitt/eventBus";
 import { loginByUsername, getUserInfoById } from "@/api/user";
+import router from "@/router";
 
 export default {
   name: "LoginComponent",
@@ -181,42 +182,67 @@ export default {
       eventBus.emit("closeMask");
     },
     // 通过账号密码登录
-    loginByUsernameHandler() {
+    async loginByUsernameHandler() {
       this.isloginLoading = true;
-      const user = {
-        username: this.username,
-        password: this.password,
-      };
-      if (this.username !== "" && this.password !== "") {
-        loginByUsername(user).then((res) => {
-          if (res.code === 200) {
-            //存储个人信息到vuex
-            this.$store.commit("setToken", res.data.token);
-            //存储token 到 localstroage
-            localStorage.setItem("token", res.data.token);
-            //获取个人信息
-            getUserInfoById(res.data.uid).then((res) => {
-              this.$store.commit("setUser", res.data);
-              localStorage.setItem("userId",res.data.id);
-              localStorage.setItem("username",res.data.username);
-              localStorage.setItem("avatar",res.data.avatar);
-            });
 
-            this.$message.success({
-              message: res.message,
-              offset: 80
-            });
-            this.closeLogin();
-            window.location.reload();
-          } else {
-            this.$message.error({
-              message: res.message,
-              offset: 80
-            });
-          }
+      try {
+        const user = {
+          username: this.username,
+          password: this.password,
+        };
+
+        const loginRes = await loginByUsername(user);
+
+        if (loginRes.code !== 200) {
+          this.$message.error({
+            message: loginRes.message,
+            offset: 80,
+          });
+          return;
+        }
+
+        // token
+        this.$store.commit("setToken", loginRes.data.token);
+        localStorage.setItem("token", loginRes.data.token);
+
+        // 等待用户信息返回
+        const userInfoRes = await getUserInfoById(loginRes.data.uid);
+
+        this.$store.commit("setUser", userInfoRes.data);
+
+        localStorage.setItem("userId", userInfoRes.data.id);
+        localStorage.setItem("username", userInfoRes.data.username);
+        localStorage.setItem("avatar", userInfoRes.data.avatar);
+
+        this.$message.success({
+          message: loginRes.message,
+          offset: 80,
         });
+
+        this.closeLogin();
+
+        const redirectPath = sessionStorage.getItem("redirectPath");
+
+        const target = redirectPath || "/";
+
+        if (redirectPath) {
+          sessionStorage.removeItem("redirectPath");
+        }
+
+        // 避免重复跳转
+        if (router.currentRoute.path !== target) {
+          await router.push(target);
+        }
+      } catch (err) {
+        console.error(err);
+
+        this.$message.error({
+          message: "登录失败",
+          offset: 80,
+        });
+      } finally {
+        this.isloginLoading = false;
       }
-      this.isloginLoading = false;
     },
   },
 };

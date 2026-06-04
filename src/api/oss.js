@@ -59,3 +59,14 @@ export function listParts(objectName,uploadId){
         }
     )
 }
+
+export function uploadFile(file,fileCategory){
+    return request.post("/oss/upload/file",null,
+        {
+            params:{
+                file,
+                fileCategory
+            }
+        }
+    )
+}
